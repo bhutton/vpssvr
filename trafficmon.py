@@ -12,7 +12,7 @@ config = {
   'user': 'ah_vps',
   'password': 'Mnie7865sh',
   'host': 'mysql',
-  'database': 'ah_vps',
+  'database': 'ah_vps_dev',
   'raise_on_warnings': True,
 }
 
@@ -50,7 +50,7 @@ for line in proc.stdout.readlines():
 
         cursor.execute(get_traffic, (interface,))
         
-        row         = cursor.fetchone()
+        row = cursor.fetchone()
 
         if (row): # If entry already exists in DB
             # DB stats

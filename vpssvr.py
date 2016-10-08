@@ -16,7 +16,6 @@ Config.read("{}/configuration.cfg".format(dir_path))
 ShellInABoxPref     = Config.get('Global','ShellInABoxPref')
 RootPath            = Config.get('Global','RootPath')
 ShellInABox         = Config.get('Global','ShellInABox')
-#SrcImg              = Config.get('Global','SrcImg')
 SrcImgFreeBSD       = Config.get('Global','SrcImgFreeBSD')
 SrcImgCentos        = Config.get('Global','SrcImgCentos')
 SrcImgDebian        = Config.get('Global','SrcImgDebian')
@@ -144,8 +143,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             output3 = subprocess.Popen(['/bin/sh', '-c', term], stdout=subprocess.PIPE)
 
     def generateScript(self,file,data):
-        #print "writing file {}".format(file)
-        #print "writing data {}".format(data)
+        
         try:
             f = open(file, 'w')
             f.write("#!/bin/sh\n")
@@ -236,9 +234,10 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         BhyveLoad       = "/usr/sbin/bhyveload -m {} -d {} {}\n".format(RAM,BootDrive,ID)
         Bhyve           = "/usr/sbin/bhyve -A -H -P -s 0:0,hostbridge -s 1:0,lpc {} {} -l com1,/dev/nmdm{}A -c 4 -m {} {} &\n".format(NetInt,Drives,Console,RAM,ID)
         ShellInABox     = "/usr/local/bin/shellinaboxd -t --service='/shell':'root':'wheel':'/root':'/usr/bin/cu -l /dev/nmdm{}B' --port={}{}".format(Console,ShellInABoxPref,ID)
-        GrubBhyve       =  "grub-bhyve -m device.map -r hd0,msdos1 -M {} {}".format(RAM,ID)
+        GrubBhyve       = "grub-bhyve -m device.map -r hd0,msdos1 -M {} {}".format(RAM,ID)
+        GrubBhyve2      = "grub-bhyve -d /grub2 -m device.map -r hd0,msdos1 -M {} {}".format(RAM,ID)
 
-        return (BhyveLoad,GrubBhyve,Bhyve,ShellInABox)
+        return (BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox)
 
     
     def createvps(self,id):
@@ -258,7 +257,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
         BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID)
 
-        BhyveLoad,GrubBhyve,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
+        BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
         
         StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref,ID)
         Network         = "/sbin/ifconfig "
@@ -269,6 +268,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
         if (Image == 1): SrcImg = SrcImgFreeBSD
         elif (Image == 2): SrcImg = SrcImgUbuntu
+        elif (Image == 3): SrcImg = SrcImgCentos
         
         if not os.path.exists(Path):
             print ("Src: {}".format(SrcImg))
@@ -292,6 +292,14 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             self.generateScript(DeviceMapScript,DevicemapData)
 
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
+
+        elif (Image == 3):
+            DevicemapData = "(hd0) ./{}\n(cd0) .\n".format(LinuxBoot)
+
+            self.generateScript(DeviceMapScript,DevicemapData)
+
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
+
 
 
 
@@ -323,6 +331,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
         if (Image == 1): SrcImg = SrcImgFreeBSD
         elif (Image == 2): SrcImg = SrcImgUbuntu
+        elif (Image == 3): SrcImg = SrcImgCentos
        
 
         Devices = self.getDevices(vps_id)
@@ -333,7 +342,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         create_disk = "truncate -s {}GB {}/{}/{}".format(size,RootPath,vps_id,id)
         output = subprocess.Popen(['/bin/sh', '-c', create_disk], stdout=subprocess.PIPE)
 
-        BhyveLoad,GrubBhyve,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
+        BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
 
         StartScript = "{}{}/start.sh".format(RootPath,vps_id)
 
@@ -342,15 +351,12 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
 
         elif (Image == 2):
-            #DevicemapData = "(hd0) ./{}\n(cd0) .\n".format(LinuxBoot)
-
-            #self.generateScript(DeviceMapScript,DevicemapData)
-
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
 
+        elif (Image == 3):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
 
 
-        #StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
         self.generateScript(StartScript,StartScriptData)
 
 
@@ -374,6 +380,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
         if (Image == 1): SrcImg = SrcImgFreeBSD
         elif (Image == 2): SrcImg = SrcImgUbuntu
+        elif (Image == 3): SrcImg = SrcImgCentos
        
 
         Devices = self.getDevices(vps_id)
@@ -383,7 +390,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
         BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID)
 
-        BhyveLoad,GrubBhyve,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
+        BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
 
         StartScript = "{}{}/start.sh".format(RootPath,vps_id)
 
@@ -393,11 +400,11 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
 
         elif (Image == 2):
-            #DevicemapData = "(hd0) ./{}\n(cd0) .\n".format(LinuxBoot)
-
-            #self.generateScript(DeviceMapScript,DevicemapData)
-
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
+
+        elif (Image == 3):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
+
 
 
         StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
@@ -409,6 +416,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
         if (Image == 1): SrcImg = SrcImgFreeBSD
         elif (Image == 2): SrcImg = SrcImgUbuntu
+        elif (Image == 3): SrcImg = SrcImgCentos
        
 
         Devices = self.getDevices(vps_id)
@@ -418,7 +426,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
         BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID)
 
-        BhyveLoad,GrubBhyve,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
+        BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID)
 
         StartScript = "{}{}/start.sh".format(RootPath,vps_id)
 
@@ -427,31 +435,19 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
 
         elif (Image == 2):
-            #DevicemapData = "(hd0) ./{}\n(cd0) .\n".format(LinuxBoot)
-
-            #self.generateScript(DeviceMapScript,DevicemapData)
-
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
 
-        StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
+        elif (Image == 3):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
 
-        #print StartScript
-        #print StartScriptData
+
+        #StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
 
         self.generateScript(StartScript,StartScriptData)
 
     def checkStatus(self,vps_id):
         self.id = vps_id
 
-        """cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-
-        Get_VPS     = ("select name from vps where vps.id=%s")
-        
-        cursor.execute(Get_VPS,(self.id,))
-        VPS = cursor.fetchone()
-        Name = VPS[0]"""
-        
         command = "/bin/ls /dev/vmm/" + str(vps_id)
 
         output = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
