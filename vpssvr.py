@@ -1,3 +1,5 @@
+#!/usr/local/bin/python
+
 from subprocess import Popen
 import SocketServer
 import mysql.connector
@@ -234,7 +236,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         BhyveLoad       = "/usr/sbin/bhyveload -m {} -d {} {}\n".format(RAM,BootDrive,ID)
         Bhyve           = "/usr/sbin/bhyve -A -H -P -s 0:0,hostbridge -s 1:0,lpc {} {} -l com1,/dev/nmdm{}A -c 4 -m {} {} &\n".format(NetInt,Drives,Console,RAM,ID)
         ShellInABox     = "/usr/local/bin/shellinaboxd -t --service='/shell':'root':'wheel':'/root':'/usr/bin/cu -l /dev/nmdm{}B' --port={}{}".format(Console,ShellInABoxPref,ID)
-        GrubBhyve       = "/usr/local/sbin/grub-bhyve -m device.map -r hd0,msdos1 -M {} {}".format(RAM,ID)
+        GrubBhyve       = "/usr/local/sbin/grub-bhyve -m {}/{}/device.map -r hd0,msdos1 -M {} {}".format(RootPath,ID,RAM,ID)
         GrubBhyve2      = "/usr/local/sbin/grub-bhyve -d /grub2 -m device.map -r hd0,msdos1 -M {} {}".format(RAM,ID)
 
         return (BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox)
@@ -287,14 +289,14 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
 
         elif (Image == 2):
-            DevicemapData = "(hd0) ./{}\n(cd0) .\n".format(LinuxBoot)
+            DevicemapData = "(hd0) {}/{}/{}\n(cd0) .\n".format(RootPath,ID,LinuxBoot)
 
             self.generateScript(DeviceMapScript,DevicemapData)
 
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
 
         elif (Image == 3):
-            DevicemapData = "(hd0) ./{}\n(cd0) .\n".format(LinuxBoot)
+            DevicemapData = "(hd0) {}/{}/{}\n(cd0) .\n".format(RootPath,ID,LinuxBoot)
 
             self.generateScript(DeviceMapScript,DevicemapData)
 
