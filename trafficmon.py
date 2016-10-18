@@ -7,6 +7,8 @@ Use Netstat to monitor traffic
 
 import subprocess
 import mysql.connector
+import database
+import time
 
 config = {
   'user': 'ah_vps',
@@ -17,87 +19,86 @@ config = {
 }
 
 add_traffic = ("INSERT INTO traffic "
-               "(interface, LastIpkts, LastOpkts, TotalIpkts, TotalOpkts) "
-               "VALUES (%s, %s, %s, %s, %s)")
+               "(interface, LastIpkts, LastOpkts, TotalIpkts, TotalOpkts,timestamp) "
+               "VALUES (%s, %s, %s, %s, %s, %s)")
 
-mod_traffic = ("UPDATE traffic "
-               "SET LastIpkts=%s,LastOpkts=%s,TotalIpkts=%s,TotalOpkts=%s "
-               "WHERE interface=%s")
-
-get_traffic = ("SELECT `LastIpkts`,`LastOpkts`,`TotalIpkts`,`TotalOpkts`,`index`,`interface` "
-              "FROM `traffic` WHERE `interface`=%s")
+last_timezone = ("select max(timestamp) from `traffic` where `interface`=%s")
 
 netstat_cmd	= "/usr/bin/netstat"
-args		    = "-b -I"
-interface	  = "tap0"
+args = "-b -I"
 
-command     = netstat_cmd + ' ' + args + ' ' + interface
+network = database.DB_Network()
+tunnel = network.getInt()
 
-proc = subprocess.Popen(['/bin/sh', '-c', command], stdout=subprocess.PIPE)
+for interface in tunnel:
 
-# Process output of netstat command
-for line in proc.stdout.readlines():
-    str_contents = line.split( )
+    interface = 'tap' + str(interface[0])
 
-    # Live stats
-    ipkts = str_contents[7]
-    opkts = str_contents[10]
+    print interface
 
-    # Process specified interface
-    if (str_contents[0] == interface):
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
+    command     = netstat_cmd + ' ' + args + ' ' + interface
 
-        cursor.execute(get_traffic, (interface,))
-        
-        row = cursor.fetchone()
+    proc = subprocess.Popen(['/bin/sh', '-c', command], stdout=subprocess.PIPE)
 
-        if (row): # If entry already exists in DB
-            # DB stats
-            last_ipkts  = row[0]
-            last_opkts  = row[1]
-            total_ipkts = row[2]
-            total_opkts = row[3]
-            index       = row[4]
-            interface   = row[5]
+    # Process output of netstat command
+    for line in proc.stdout.readlines():
+        str_contents = line.split( )
 
-            total_ipkgs = int(total_ipkts) + (int(ipkts) - int(last_ipkts))
-            total_opkgs = int(total_opkts) + (int(opkts) - int(last_opkts))
+        # Live stats
+        ipkts = str_contents[4]
+        opkts = str_contents[8]
 
-            data_traffic_update = (ipkts,opkts,ipkts,opkts,interface)
+        totipkts = str_contents[7]
+        totopkts = str_contents[10]
 
-            cursor.execute(mod_traffic, data_traffic_update)
 
-        else:
+        # Process specified interface
+        if (str_contents[0] in interface):
+            cnx = mysql.connector.connect(**config)
+            cursor = cnx.cursor()
+
+            cursor.execute(last_timezone, (interface,))
+            
+            row = cursor.fetchone()
+            db_timestamp = row[0]
+
             total_opkgs = opkts
             total_ipkgs = ipkts
+            timestamp = int(time.time())
 
-            data_traffic_insert = (interface,ipkts,opkts,ipkts,opkts)
-            cursor.execute(add_traffic, data_traffic_insert)
-   
-        cnx.commit()
-        cnx.close()
+            if (db_timestamp == None):
+                db_timestamp = int(time.time() - 5 * 60)
 
-        ipkts_kb = int(ipkts) / 1024
-        opkts_kb = int(opkts) / 1024
 
-        ipkts_mb = ipkts_kb / 1024
-        opkts_mb = opkts_kb / 1024
+            if (timestamp >= (db_timestamp + 5 * 60)):
 
-        ipkts_gb = ipkts_mb / 1024
-        opkts_gb = opkts_mb / 1024
+                data_traffic_insert = (interface,ipkts,opkts,totipkts,totopkts,timestamp)
 
-        print "Interface:\t\t", str_contents[0]
-        print "Current Inbound:\t", ipkts,"B"
-        print "Current Outbound:\t", opkts,"B"
-        print "Current Inbound:\t", ipkts_kb,"KB"
-        print "Current Outbound:\t", opkts_kb,"KB"
-        print "Current Inbound:\t", ipkts_mb,"MB"
-        print "Current Outbound:\t", opkts_mb,"MB"
-        print "Current Inbound:\t", ipkts_gb,"GB"
-        print "Current Outbound:\t", opkts_gb,"GB"
-        
-        print "Total Inbound:\t\t", total_ipkgs
-        print "Total Outbound:\t\t", total_opkgs
+                cursor.execute(add_traffic, data_traffic_insert)
+           
+                cnx.commit()
+                cnx.close()
 
-# End Process output of netstat command    	
+                ipkts_kb = int(ipkts) / 1024
+                opkts_kb = int(opkts) / 1024
+
+                ipkts_mb = ipkts_kb / 1024
+                opkts_mb = opkts_kb / 1024
+
+                ipkts_gb = ipkts_mb / 1024
+                opkts_gb = opkts_mb / 1024
+
+                print "Interface:\t\t", interface
+                print "Current Inbound:\t", ipkts,"B"
+                print "Current Outbound:\t", opkts,"B"
+                print "Current Inbound:\t", ipkts_kb,"KB"
+                print "Current Outbound:\t", opkts_kb,"KB"
+                print "Current Inbound:\t", ipkts_mb,"MB"
+                print "Current Outbound:\t", opkts_mb,"MB"
+                print "Current Inbound:\t", ipkts_gb,"GB"
+                print "Current Outbound:\t", opkts_gb,"GB"
+                
+                print "Total Inbound:\t\t", total_ipkgs
+                print "Total Outbound:\t\t", total_opkgs
+
+    # End Process output of netstat command    	
