@@ -23,6 +23,8 @@ SrcImgCentos        = Config.get('Global','SrcImgCentos')
 SrcImgDebian        = Config.get('Global','SrcImgDebian')
 SrcImgUbuntu        = Config.get('Global','SrcImgUbuntu')
 Bhyvectl            = Config.get('Global','Bhyvectl')
+PIDFile             = Config.get('Global','PIDFile')
+LogFile             = Config.get('Global','LogFile')
 HOST                = str(Config.get('Global','HOST'))
 PORT                = int(Config.get('Global','PORT'))
 
@@ -43,9 +45,26 @@ config = {
         'raise_on_warnings': raise_on_warnings,
     }
 
+class Setup:
+    def createPID(self):
+        pid = os.getpid()
+        file = PIDFile
+
+        print "{}\n".format(PIDFile)
+
+        try:
+            f = open(PIDFile, 'w')
+            f.write ("{}\n".format(pid))
+            f.close() 
+        except:
+            return "Error writing pid\n"
+        finally:
+            return "vpssvr started\n"
+
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 
-    class VMFunc:
+    class VMFunc:    
+
         def execbhyve(self,command,ID):
             self.command = command
             self.id = ID
@@ -87,10 +106,10 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         cursor.execute(Get_Dev,(id,))
         Devices = cursor.fetchall()
 
-        print ("ID: {}" .format(VPS[0]))
-        print ("Name: {}".format(VPS[1]))
-        print ("RAM: {}".format(VPS[2]))
-        print ("Console: {}".format(VPS[3]))
+        #print ("ID: {}" .format(VPS[0]))
+        #print ("Name: {}".format(VPS[1]))
+        #print ("RAM: {}".format(VPS[2]))
+        #print ("Console: {}".format(VPS[3]))
         
         Count = 0
         for Disk in Disks:
@@ -113,6 +132,8 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         vm = MyTCPHandler.VMFunc()
         vm.execbhyve(command,str(VPS[0]))
 
+        return "Started VPS {}\n".format(id)
+
 
     def stop(self,id):
 
@@ -134,8 +155,8 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
         out, err = output2.communicate()
 
-        print (command)
-        print (out)
+        #print (command)
+        #print (out)
 
         pid = out.split()
 
@@ -143,6 +164,8 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             term = "kill -TERM " + str(pid[2])
             print (term)
             output3 = subprocess.Popen(['/bin/sh', '-c', term], stdout=subprocess.PIPE)
+
+        return "Stopped VPS {}\n".format(id)
 
     def generateScript(self,file,data):
         
@@ -243,7 +266,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     
     def createvps(self,id):
-        print ("Create: {}".format(id))
+        #print ("Create: {}".format(id))
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
 
@@ -273,8 +296,8 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         elif (Image == 3): SrcImg = SrcImgCentos
         
         if not os.path.exists(Path):
-            print ("Src: {}".format(SrcImg))
-            print ("Dst: {}".format(DstImg))
+            #print ("Src: {}".format(SrcImg))
+            #print ("Dst: {}".format(DstImg))
             os.makedirs(Path)
             shutil.copyfile(SrcImg,BootDrive)
             
@@ -313,11 +336,13 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         self.generateScript(StopScript,StopScriptData)
         self.generateScript(StartConsole,StartConsoleScript)
         self.generateScript(StopConsole,StopConsoleScript)
+
+        return "Created VPS: {}\n".format(id)
         
 
     def createDisk(self,id):
 
-        print "Create Disk"
+        #print "Create Disk"
         
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
@@ -360,6 +385,8 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
 
         self.generateScript(StartScript,StartScriptData)
+
+        return "Create Disk for VPS {}\n".format(vps_id)
 
 
     def deleteDisk(self,id):
@@ -455,9 +482,9 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         output = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
 
         if (len(output) > 0):
-            return "Running"
+            return "VPS {} Running\n".format(vps_id)
         else:
-            return "Stopped"
+            return "VPS {} Stopped\n".format(vps_id)
 
 
     def restartConsole(self,id):
@@ -472,10 +499,12 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
         if (len(pid) > 0):
             term = "kill -TERM " + str(pid[2])
-            print (term)
+            #print (term)
             output2 = subprocess.Popen(['/bin/sh', '-c', term], stdout=subprocess.PIPE)
 
         output3 = subprocess.Popen(['/bin/sh', '-c', startconsole], stdout=subprocess.PIPE)
+
+        return "Terminal Restarted\n"
 
     def delete(self,id):
         PathOrig = RootPath + str(id)
@@ -483,14 +512,29 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         
         if os.path.exists(PathOrig):
             os.renames(PathOrig,PathDest)
-            print ("Move From: {}" .format(PathOrig))
-            print ("To: {}" .format(PathDest))
+            #print ("Move From: {}" .format(PathOrig))
+            #print ("To: {}" .format(PathDest))
+
+            status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
+
+    def logentry(self,data):
+        
+        try:
+            f = open(LogFile, 'a')
+            f.write(data)
+            f.close()
+        except:
+            print "Error with ".format(LogFile)
         
 
     def handle(self):
+        
+
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
-        print ("{} wrote:".format(self.client_address[0]))
+        
+        #wrote = "{} wrote:".format(self.client_address[0])
+        #self.logentry(wrote)
 
         print "Data = ".format(self.data)
 
@@ -501,23 +545,26 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         status = ''
 
         if (Command == "start"):        
-            self.start(id)
+            status = self.start(id)
         elif (Command == "createvps"):
-            self.createvps(id)
+            status = self.createvps(id)
         elif (Command == "createdisk"):
-            self.createDisk(id)
+            status = self.createDisk(id)
         elif (Command == "deletedisk"):
-            self.deleteDisk(id)
+            status = self.deleteDisk(id)
         elif (Command == "delete"):
-            self.delete(id)
+            status = self.delete(id)
         elif (Command == "stop"):
-            self.stop(id)
+            status = self.stop(id)
         elif (Command == "restartConsole"):
-            self.restartConsole(id)
+            status = self.restartConsole(id)
         elif (Command == "status"):
             status = self.checkStatus(id)
         elif (Command == "updatevps"):
-            self.updateVPS(id)
+            status = self.updateVPS(id)
+
+        self.logentry(status)
+
 
                 
         # just send back the same data, but upper-cased
@@ -527,5 +574,8 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             self.request.sendall(self.data.upper())
 
 if __name__ == "__main__":
+    #setup = Setup()
+    #setup.createPID()
+
     server = SocketServer.ThreadingTCPServer((HOST, PORT), MyTCPHandler)
     server.serve_forever()
