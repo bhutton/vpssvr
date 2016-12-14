@@ -96,7 +96,7 @@ class VMFunc:
 			elif (self.getCommand() == "restartConsole"): self.status = self.restartConsole(self.getID())
 			elif (self.getCommand() == "status"): self.status = self.checkStatus(self.getID())
 			elif (self.getCommand() == "updatevps"): self.status = self.updateVPS(self.getID())
-			elif (self.getCommand() == "takeSnapshot"): self.status = self.takeSnapshot(self.getID())
+			elif (self.getCommand() == "takeSnapshot"): self.status = self.takeSnapshot(self.getID(), self.snapShot)
 			elif (self.getCommand() == "listSnapshot"): self.status = self.listSnapshot(self.getID())
 			elif (self.getCommand() == "restoreSnapshot"): self.status = self.restoreSnapshot(self.getID(), self.snapShot)
 			elif (self.getCommand() == "removeSnapshot"): self.status = self.removeSnapshot(self.getID(), self.snapShot)
@@ -143,11 +143,15 @@ class VMFunc:
 
 			os._exit(0)
 
-	def takeSnapshot(self,id):
+	def takeSnapshot(self,id,snapshot):
 
-		self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(time.time())
+		if (snapshot == ""): snapshot = str(time.time())
+
+		#self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(time.time())
+		self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
 
 		print "{}\n".format(self.command)
+		print "Snapshot name = {}".format(snapshot)
 		
 		"""pid = os.fork() 
 
