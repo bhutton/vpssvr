@@ -61,7 +61,7 @@ class VMFunc:
 
 		
 		try:
-			createDisk = Data[2]
+			createDisk = Data[3]
 			
 		except:
 			createDisk = "no"
@@ -388,7 +388,7 @@ class VMFunc:
 		print "Createdisk = {}".format(self.createDisk)
 
 		    
-		if (self.createDisk == "createvps"):
+		if (self.createDisk == "on"):
 			print "Copying file... {} to {}".format(SrcImg,BootDrive)
 			shutil.copyfile(SrcImg,BootDrive)
 
