@@ -147,25 +147,17 @@ class VMFunc:
 
 		if (snapshot == ""): snapshot = str(time.time())
 
-		#self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(time.time())
 		self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
 
 		print "{}\n".format(self.command)
 		print "Snapshot name = {}".format(snapshot)
 		
-		"""pid = os.fork() 
-
-		if (pid == 0):"""
-
 		self.id = RootPath + str(id)
-		#args = ("-c",self.command,self.id)
-
+		
 		proc = subprocess.Popen(['/bin/sh', '-c', self.command],
 			 stdout=subprocess.PIPE, 
 		     stderr=subprocess.STDOUT,
 		     close_fds=True)
-
-		#os._exit(0)
 
 		output,error = proc.communicate()
 
@@ -393,8 +385,11 @@ class VMFunc:
 		if not os.path.exists(Path):
 			os.makedirs(Path)
 
+		print "Createdisk = {}".format(self.createDisk)
+
 		    
-		if (self.createDisk == "on"):
+		if (self.createDisk == "createvps"):
+			print "Copying file... {} to {}".format(SrcImg,BootDrive)
 			shutil.copyfile(SrcImg,BootDrive)
 
 			StartScript = "{}/start.sh".format(Path)

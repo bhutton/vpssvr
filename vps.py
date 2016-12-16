@@ -307,6 +307,7 @@ class VMFunc:
 
 		    
 		if (self.createDisk == "on"):
+			print "Copying file..."
 			shutil.copyfile(SrcImg,BootDrive)
 
 			StartScript = "{}/start.sh".format(Path)
