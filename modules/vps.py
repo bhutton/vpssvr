@@ -14,7 +14,6 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 # Get VPS configurations from configuration.cfg
 Config = ConfigParser.ConfigParser()
 Config.read("{}/../configuration.cfg".format(dir_path))
-#Config.read("/vm/vpsmanager-dev/configuration.cfg")
 
 ShellInABoxPref     = Config.get('Global','ShellInABoxPref')
 RootPath            = Config.get('Global','RootPath')
@@ -59,18 +58,11 @@ class VMFunc:
 		self.id 	= int(Data[1])
 		Command 	= Data[2]
 
-		
-		try:
-			createDisk = Data[3]
-			
-		except:
-			createDisk = "no"
+		try: createDisk = Data[3]
+		except: createDisk = "no"
 
-		try:
-			Snapshot = Data[3]
-		except:
-			Snapshot = ""
-
+		try: Snapshot = Data[3]
+		except: Snapshot = ""
 
 		self.command = Command
 		self.createDisk = createDisk
@@ -78,10 +70,8 @@ class VMFunc:
 
 	def checkSecurity(self):
 
-		if (PassString == self.Auth):
-			return "Pass"
-		else:
-			return "Fail"
+		if (PassString == self.Auth): return "Pass"
+		else: return "Fail"
 
 	def executeCommand(self):
 
@@ -112,8 +102,6 @@ class VMFunc:
 
 	def getID(self):
 		return self.id
-
-
 
 	def logentry(self,data):
         
@@ -192,7 +180,6 @@ class VMFunc:
 			 stdout=subprocess.PIPE, 
 		     stderr=subprocess.STDOUT,
 		     close_fds=True)
-
 
 		return "Snapshot Restored"
 
@@ -274,6 +261,8 @@ class VMFunc:
 			os.renames(PathOrig,PathDest)
 		    
 		status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
+
+		return status
 
 	def generateScript(self,file,data):
 
@@ -385,9 +374,6 @@ class VMFunc:
 		if not os.path.exists(Path):
 			os.makedirs(Path)
 
-		print "Createdisk = {}".format(self.createDisk)
-
-		    
 		if (self.createDisk == "on"):
 			print "Copying file... {} to {}".format(SrcImg,BootDrive)
 			shutil.copyfile(SrcImg,BootDrive)
@@ -505,7 +491,7 @@ class VMFunc:
 		self.generateScript(StartScript,StartScriptData)
 		self.generateScript(StopScript,StopScriptData)
 
-		return "Updated"
+		return "VPS {} Update\n".format(vps_id)
 
 	def createDisk(self,id):
 
@@ -634,4 +620,4 @@ class VMFunc:
 		StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
 		self.generateScript(StartScript,StartScriptData)
 
-		return "Disk Delete"
+		return "Disk {} Delete\n".format(id)
