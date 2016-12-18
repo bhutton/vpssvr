@@ -61,6 +61,9 @@ class DB_VPS:
 
 		return self.int
 
+	#def getIntStatus(self,id):
+	#	self.cursor.execute("select interface")
+
 	def getDevices(self,id):
 		#cnx = mysql.connector.connect(**config)
 		#cursor = cnx.cursor()

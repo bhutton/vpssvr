@@ -31,6 +31,7 @@ PassString 			= Config.get('Global','PassString')
 ZFSEnable 			= int(Config.get('Global','ZFSEnable'))
 ZFSRoot 			= Config.get('Global','ZFSRoot')
 ZFSCmd 				= Config.get('Global','ZFSCmd')
+IFConfig 			= Config.get('Global','IFConfig')
 
 mysql_user          = Config.get('Database','mysql_user')
 mysql_password      = Config.get('Database','mysql_password')
@@ -68,6 +69,8 @@ class VMFunc:
 		self.createDisk = createDisk
 		self.snapShot = Snapshot
 
+		self.log = ''
+
 	def checkSecurity(self):
 
 		if (PassString == self.Auth): return "Pass"
@@ -90,12 +93,37 @@ class VMFunc:
 			elif (self.getCommand() == "listSnapshot"): self.status = self.listSnapshot(self.getID())
 			elif (self.getCommand() == "restoreSnapshot"): self.status = self.restoreSnapshot(self.getID(), self.snapShot)
 			elif (self.getCommand() == "removeSnapshot"): self.status = self.removeSnapshot(self.getID(), self.snapShot)
+			elif (self.getCommand() == "netStatus"): self.status = self.getNetStatus(self.getID())
+			elif (self.getCommand() == "netStop"): self.status = self.stopNetwork(self.getID())
+			elif (self.getCommand() == "netStart"): self.status = self.startNetwork(self.getID())
 
 		else:
 			self.status = "Connection Failed"
 
 	def getStatus(self):
 		return (self.status)
+
+	def getNetStatus(self,id):
+		vps = database.DB_VPS()
+		devices = vps.getDevices(id)
+
+		output,error = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
+
+		if (output == ""): output = "DOWN"
+		else: output = "UP"
+
+		return output
+
+	def stopNetwork(self,id):
+		output,error = self.execcmd(IFConfig + ' tap' + format(id) + ' down')
+
+		return output
+
+	def startNetwork(self,id):
+		output,error = self.execcmd(IFConfig + ' tap' + format(id) + ' up')
+
+		return output
+
 
 	def getCommand(self):
 		return self.command
@@ -130,6 +158,17 @@ class VMFunc:
 			     close_fds=True)
 
 			os._exit(0)
+
+	def execcmd(self,cmd):
+		proc = subprocess.Popen(['/bin/sh', '-c', cmd],
+			 stdout=subprocess.PIPE, 
+		     stderr=subprocess.STDOUT,
+		     close_fds=True)
+
+		output,error = proc.communicate()
+
+		return (output,error)
+
 
 	def takeSnapshot(self,id,snapshot):
 
