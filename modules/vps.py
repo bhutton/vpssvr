@@ -450,9 +450,13 @@ class VMFunc:
 		if (self.createDisk == "on"):
 			print "Copying file... {} to {}".format(SrcImg,BootDrive)
 
-			cmd = BasePath + '/runcmd.py ' + SrcImg + " " + BootDrive + " " + RootPath + str(ID) + "/installing.txt"
+			cmd = "/usr/bin/touch " + RootPath + str(ID) + "/installing.txt" + " && cp " + SrcImg + " " + BootDrive + " && /bin/rm " + RootPath + str(ID) + "/installing.txt"
 
-			print "Command = {}".format(cmd)
+			#print "Command = {}\n".format(fullCmd)			
+
+			#cmd = BasePath + '/runcmd.py ' + SrcImg + " " + BootDrive + " " + RootPath + str(ID) + "/installing.txt"
+
+			#print "Command = {}".format(cmd)
 
 			self.execcmdFork(cmd)
 			#shutil.copyfile(SrcImg,BootDrive)
