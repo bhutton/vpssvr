@@ -17,6 +17,7 @@ Config.read("{}/../configuration.cfg".format(dir_path))
 
 ShellInABoxPref     = Config.get('Global','ShellInABoxPref')
 RootPath            = Config.get('Global','RootPath')
+BasePath            = Config.get('Global','BasePath')
 ShellInABox         = Config.get('Global','ShellInABox')
 SrcImgFreeBSD       = Config.get('Global','SrcImgFreeBSD')
 SrcImgCentos        = Config.get('Global','SrcImgCentos')
@@ -169,6 +170,20 @@ class VMFunc:
 
 		return (output,error)
 
+	def execcmdFork(self,cmd):
+		pid = os.fork() 
+
+		if (pid == 0):
+
+			proc = subprocess.Popen(['/bin/sh', '-c', cmd],
+				 stdout=subprocess.PIPE, 
+			     stderr=subprocess.STDOUT,
+			     close_fds=True)
+
+			os._exit(0)
+
+			output,error = proc.communicate()
+
 
 	def takeSnapshot(self,id,snapshot):
 
@@ -267,6 +282,12 @@ class VMFunc:
 		
 		if (vps_startscript == ""): vps_name = str(self.id)
 
+		print "{}{}/installing.txt".format(RootPath,vps_id)
+
+		if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
+			return "Installing"
+
+
 		if (os.path.exists("/dev/vmm/" + str(vps_id))):
 			return "Running"
 		else:
@@ -296,9 +317,16 @@ class VMFunc:
 		PathOrig = RootPath + str(id)
 		PathDest = RootPath + "deleted/" + str(id)
 
-		if os.path.exists(PathOrig):
-			os.renames(PathOrig,PathDest)
-		    
+		if (ZFSEnable == 1):
+			cmd = ZFSCmd + " destroy " + ZFSRoot + "/" + str(id)
+
+			self.execcmd(cmd)
+
+			print "ZFS Destroy CMD = {}\n".format(cmd)
+		else:
+			if os.path.exists(PathOrig):
+				os.renames(PathOrig,PathDest)
+			    
 		status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
 
 		return status
@@ -411,11 +439,23 @@ class VMFunc:
 		elif (Image == 3): SrcImg = SrcImgCentos
 
 		if not os.path.exists(Path):
-			os.makedirs(Path)
+			if (ZFSEnable == 1):
+				cmd = ZFSCmd + " create " + ZFSRoot + "/" + str(ID)
+
+				print "ZFS Command = {}\n".format(cmd)
+				self.execcmd(cmd)
+			else:
+				os.makedirs(Path)
 
 		if (self.createDisk == "on"):
 			print "Copying file... {} to {}".format(SrcImg,BootDrive)
-			shutil.copyfile(SrcImg,BootDrive)
+
+			cmd = BasePath + '/runcmd.py ' + SrcImg + " " + BootDrive + " " + RootPath + str(ID) + "/installing.txt"
+
+			print "Command = {}".format(cmd)
+
+			self.execcmdFork(cmd)
+			#shutil.copyfile(SrcImg,BootDrive)
 
 			StartScript = "{}/start.sh".format(Path)
 			StopScript = "{}/stop.sh".format(Path)
@@ -459,7 +499,6 @@ class VMFunc:
 	def updateVPS(self,vps_id):
 		
 		vps = database.DB_VPS()
-		#vpsConn = modules.vps.VMFunc()
 		vps.getVPS(vps_id)
 
 		ID = vps.getID()
