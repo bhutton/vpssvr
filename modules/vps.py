@@ -512,7 +512,7 @@ class VMFunc:
 
 		Disks = vps.getDisks(vps_id)
 
-		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
+		if (Path == ""): VPSPath = RootPath + str(vps_id)
 		else: VPSPath = Path
 
 		print "VPS Path: {}".format(VPSPath)
