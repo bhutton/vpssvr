@@ -9,3 +9,8 @@ timedemo.py
 trafficmon.log
 .DS_Store
 test_cmd.py
+virtualenv
+.project
+.pydevproject
+foo.png
+foo.png.new

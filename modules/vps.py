@@ -33,6 +33,9 @@ ZFSEnable 			= int(Config.get('Global','ZFSEnable'))
 ZFSRoot 			= Config.get('Global','ZFSRoot')
 ZFSCmd 				= Config.get('Global','ZFSCmd')
 IFConfig 			= Config.get('Global','IFConfig')
+Touch 				= Config.get('Global','Touch')
+CP 		 			= Config.get('Global','CP')
+RM 					= Config.get('Global','RM')
 
 mysql_user          = Config.get('Database','mysql_user')
 mysql_password      = Config.get('Database','mysql_password')
@@ -450,16 +453,11 @@ class VMFunc:
 		if (self.createDisk == "on"):
 			print "Copying file... {} to {}".format(SrcImg,BootDrive)
 
-			cmd = "/usr/bin/touch " + RootPath + str(ID) + "/installing.txt" + " && cp " + SrcImg + " " + BootDrive + " && /bin/rm " + RootPath + str(ID) + "/installing.txt"
+			cmd = Touch + " " + RootPath + str(ID) + "/installing.txt" + " && " + CP + " " + SrcImg + " " + BootDrive + " && " + RM + " " + RootPath + str(ID) + "/installing.txt"
 
-			#print "Command = {}\n".format(fullCmd)			
-
-			#cmd = BasePath + '/runcmd.py ' + SrcImg + " " + BootDrive + " " + RootPath + str(ID) + "/installing.txt"
-
-			#print "Command = {}".format(cmd)
+			#print "{}\n".format(cmd)
 
 			self.execcmdFork(cmd)
-			#shutil.copyfile(SrcImg,BootDrive)
 
 			StartScript = "{}/start.sh".format(Path)
 			StopScript = "{}/stop.sh".format(Path)
