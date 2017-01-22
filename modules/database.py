@@ -169,7 +169,5 @@ class DB_VPS:
 		vps_id = str(self.vps[0])
 		return ("sh " + RootPath + "/" + vps_id + "/stopconsole.sh")
 
-        
-        
 
 	

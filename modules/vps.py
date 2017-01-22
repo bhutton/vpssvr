@@ -5,7 +5,7 @@ import os, subprocess
 import shutil
 import ConfigParser
 import subprocess
-import database
+import modules.database
 import time
 
 
@@ -83,13 +83,13 @@ class VMFunc:
 	def executeCommand(self):
 
 		if (self.checkSecurity() == "Pass"):
-
+			
 			if   (self.getCommand() == "start"): self.status = self.start(self.getID())
+			elif (self.getCommand() == "stop"): self.status = self.stop(self.getID())
 			elif (self.getCommand() == "createvps"): self.status = self.createvps(self.getID())
 			elif (self.getCommand() == "createdisk"): self.status = self.createDisk(self.getID())
 			elif (self.getCommand() == "deletedisk"): self.status = self.deleteDisk(self.getID())
 			elif (self.getCommand() == "delete"): self.status = self.delete(self.getID())
-			elif (self.getCommand() == "stop"): self.status = self.stop(self.getID())
 			elif (self.getCommand() == "restartConsole"): self.status = self.restartConsole(self.getID())
 			elif (self.getCommand() == "status"): self.status = self.checkStatus(self.getID())
 			elif (self.getCommand() == "updatevps"): self.status = self.updateVPS(self.getID())
@@ -103,19 +103,21 @@ class VMFunc:
 
 		else:
 			self.status = "Connection Failed"
+			
+		return self.status
 
 	def getStatus(self):
 		return (self.status)
 
 	def getNetStatus(self,id):
-		vps = database.DB_VPS()
+		vps = modules.database.DB_VPS()
 		devices = vps.getDevices(id)
-
-		output,error = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
-
+		
+		output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
+		
 		if (output == ""): output = "DOWN"
 		else: output = "UP"
-
+		
 		return output
 
 	def stopNetwork(self,id):
@@ -136,7 +138,7 @@ class VMFunc:
 		return self.id
 
 	def logentry(self,data):
-        
+		
 		try:
 			f = open(LogFile, 'a')
 			f.write(data)
@@ -298,7 +300,7 @@ class VMFunc:
 
 	def start(self,id):
         
-		VPS_DB = database.DB_VPS()
+		VPS_DB = modules.database.DB_VPS()
 		VPS = VPS_DB.getVPS(id)
 
 		self.execbhyve(VPS_DB.startCommand(RootPath),str(id))

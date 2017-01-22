@@ -1,5 +1,10 @@
 #!/usr/local/bin/python
 
+'''
+BHyve Server for VPS Manager App
+
+'''
+
 from subprocess import Popen
 import SocketServer
 import mysql.connector
@@ -26,6 +31,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         
+        # Instanciate modules.vps passing in payload from calling application
         vpsConn = modules.vps.VMFunc(self.request.recv(1024).strip())
         vpsConn.executeCommand()
         vpsConn.logentry(vpsConn.getStatus())
