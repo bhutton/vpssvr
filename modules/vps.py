@@ -309,7 +309,7 @@ class VMFunc:
 
 	def stop(self,id):
 
-		VPS_DB = database.DB_VPS()
+		VPS_DB = modules.database.DB_VPS()
 		VPS = VPS_DB.getVPS(id)
 
 		#VPS_Con = modules.vps.VMFunc()
@@ -410,7 +410,7 @@ class VMFunc:
 
 	def createvps(self,id):
 		
-		vps = database.DB_VPS()
+		vps = modules.database.DB_VPS()
 		vps.getVPS(id)
 
 		ID 			= vps.getID()
