@@ -111,7 +111,7 @@ class TestStatus(unittest.TestCase):
     
     
     
-    '''
+    
     #
     # Creating a VPS
     #
@@ -126,9 +126,13 @@ class TestStatus(unittest.TestCase):
     @mock.patch('modules.database.DB_VPS.getName')
     @mock.patch('modules.database.DB_VPS.getID')
     @mock.patch('modules.database.DB_VPS.getVPS')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('os.path.exists')
     @mock.patch('modules.vps.VMFunc.checkSecurity')  
     def test_executeCommand_createvps(
             self, 
+            exec_function_dbconnect,
+            exec_function_ospathexists,
             exec_function_checkSecurity, 
             exec_function_getvps,
             exec_function_getid,
@@ -142,16 +146,33 @@ class TestStatus(unittest.TestCase):
             exec_function_getDisks,
             exec_function_getDevices):
         
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        
         # Stopping a VPS
         modules.database.DB_VPS.getVPS.return_value = ''
         modules.database.DB_VPS.getID.return_value = '1'
+        modules.database.DB_VPS.getName.return_value = 'MyTestVPS'
+        modules.database.DB_VPS.getRAM.return_value = '512'
+        modules.database.DB_VPS.getConsole.return_value = '1'
+        modules.database.DB_VPS.getImage.return_value = '1'
+        modules.database.DB_VPS.getPath.return_value = '/Users/ben/repos/vpssvr'
+        modules.database.DB_VPS.getStartScript.return_value = '/home/startme.sh'
+        modules.database.DB_VPS.getStopScript.return_value = '/home/stopme.sh'
+        modules.database.DB_VPS.getDisks.return_value = '234'
+        modules.database.DB_VPS.getDevices.return_value = '1'
+        
+        modules.database.DB_VPS.getDevices.return_value = '1'
+        
+        os.path.exists('/Users/ben/repos/vpssvr').return_value = ''
+        
+        
         
         modules.vps.VMFunc.checkSecurity.return_value = 'Pass'
         #modules.vps.VMFunc.getID.return_value = '1'
         
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,createvps")
-        #assert vpsConn.executeCommand() == 'Stopped VPS 1\n'
-        '''
+        assert vpsConn.executeCommand() == 'Created VPS: 1\n'
+        
         
 
     @mock.patch('modules.database.DB_VPS')

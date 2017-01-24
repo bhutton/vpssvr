@@ -390,6 +390,7 @@ class VMFunc:
 
 		Drives = ''
 		BootDrive = ''
+		LinuxBoot = ''
 
 		if (Path == ""): Path = RootPath + "/" + str(ID)
 
@@ -412,7 +413,7 @@ class VMFunc:
 		
 		vps = modules.database.DB_VPS()
 		vps.getVPS(id)
-
+		
 		ID 			= vps.getID()
 		Name 		= vps.getName()
 		RAM 		= vps.getRAM()
