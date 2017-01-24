@@ -173,6 +173,10 @@ class TestStatus(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,createvps")
         assert vpsConn.executeCommand() == 'Created VPS: 1\n'
         
+    
+    def test_executeCommand_createdisk(self):
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,createdisk")
+        assert vpsConn.executeCommand() == 'Create Disk for VPS 1\n'
         
 
     @mock.patch('modules.database.DB_VPS')
