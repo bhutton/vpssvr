@@ -14,6 +14,4 @@ virtualenv
 .pydevproject
 foo.png
 foo.png.new
-execmd.pyc graph-test.pyc graph.pyc runcmd.pyc sockettest.pyc test_cmd.pyc threadtest.pyc timedemo.pyc trafficmon.pyc vps.pyc vpsman.pyc vpssvr.pyc
-.pyc
-execmd.pyc graph-test.pyc graph.pyc runcmd.pyc sockettest.pyc test_cmd.pyc threadtest.pyc timedemo.pyc trafficmon.pyc vps.pyc vpsman.pyc vpssvr.pyc
+*.pyc
