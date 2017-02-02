@@ -191,56 +191,70 @@ class VMFunc:
 
 
 	def takeSnapshot(self,id,snapshot):
-
-		if (snapshot == ""): snapshot = str(time.time())
-
-		self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
-
-		print "{}\n".format(self.command)
-		print "Snapshot name = {}".format(snapshot)
 		
-		self.id = RootPath + str(id)
-		
-		proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-			 stdout=subprocess.PIPE, 
-		     stderr=subprocess.STDOUT,
-		     close_fds=True)
+		try:
 
-		output,error = proc.communicate()
+			if (snapshot == ""): snapshot = str(time.time())
+	
+			self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
+	
+			print "{}\n".format(self.command)
+			print "Snapshot name = {}".format(snapshot)
+			
+			self.id = RootPath + str(id)
+			
+			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+				 stdout=subprocess.PIPE, 
+			     stderr=subprocess.STDOUT,
+			     close_fds=True)
+	
+			output,error = proc.communicate()
 
-		return output
+			return "Command successful"
+		except:
+			return "An error occurred"
 
 	def listSnapshot(self,id):
-
-		self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
-
-		print "{}\n".format(self.command) 
-
-		self.id = RootPath + str(id)
-
-		proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-			 stdout=subprocess.PIPE, 
-		     stderr=subprocess.STDOUT,
-		     close_fds=True)
-
 		
+		try:
 
-		output,error = proc.communicate()
-
-		return output
+			self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
+	
+			print "{}\n".format(self.command) 
+	
+			self.id = RootPath + str(id)
+	
+			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+				 stdout=subprocess.PIPE, 
+			     stderr=subprocess.STDOUT,
+			     close_fds=True)
+	
+			
+	
+			output,error = proc.communicate()
+	
+			return output
+		except:
+			return "An error occured"
 
 	def restoreSnapshot(self,id,snapshot):
-
-		self.command = ZFSCmd + ' rollback ' + snapshot
-
-		print "Command = {}".format(self.command)
-
-		proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-			 stdout=subprocess.PIPE, 
-		     stderr=subprocess.STDOUT,
-		     close_fds=True)
-
-		return "Snapshot Restored"
+		
+		try:
+			self.command = ZFSCmd + ' rollback ' + snapshot
+	
+			print "Command = {}".format(self.command)
+	
+			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+				 stdout=subprocess.PIPE, 
+			     stderr=subprocess.STDOUT,
+			     close_fds=True)
+			
+			output,error = proc.communicate()
+	
+			return output
+		
+		except:
+			return error
 
 	def removeSnapshot(self,id,snapshot):
 

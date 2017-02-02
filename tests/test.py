@@ -419,8 +419,6 @@ class TestStatus(unittest.TestCase):
         modules.database.DB_VPS.getName.return_value = 'MyTestVPS'
         modules.database.DB_VPS.getRAM.return_value = '512'
         modules.database.DB_VPS.getConsole.return_value = '1'
-        #modules.database.DB_VPS.getImage.return_value = '1'
-        #modules.database.DB_VPS.getPath.return_value = '/Users/ben/repos/vpssvr'
         modules.database.DB_VPS.getStartScript.return_value = '/home/startme.sh'
         modules.database.DB_VPS.getStopScript.return_value = '/home/stopme.sh'
         modules.database.DB_VPS.getDisks.return_value = '234'
@@ -436,6 +434,92 @@ class TestStatus(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,updatevps")
         
         assert vpsConn.executeCommand() == 'Error: no image specified'
+        
+    
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    def test_executeCommand_updateVPS_takeSnapshot(
+            self,
+            exec_function_checkSecurity,
+            exec_function_dbconnect):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'success')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,takeSnapshot")
+        
+        assert vpsConn.executeCommand() == 'Command successful'
+        
+    @mock.patch('subprocess.Popen')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    def test_executeCommand_updateVPS_listSnapshot(
+            self,
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('my snapshot list', 'success')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        
+        exec_function_subprocess_Popen.return_value = process_mock
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,listSnapshot")
+        
+        assert vpsConn.executeCommand() == 'my snapshot list'
+        
+    @mock.patch('subprocess.Popen')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    def test_executeCommand_updateVPS_restoreSnapshot(
+            self,
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('Snapshot Restored', 'success')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        
+        exec_function_subprocess_Popen.return_value = process_mock
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,restoreSnapshot")
+        
+        assert vpsConn.executeCommand() == 'Snapshot Restored'
+        
+        
+    @mock.patch('subprocess.Popen')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    def test_executeCommand_updateVPS_removeSnapshot(
+            self,
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('Snapshot Removed', 'success')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        
+        exec_function_subprocess_Popen.return_value = process_mock
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,removeSnapshot")
+        
+        assert vpsConn.executeCommand() == 'Snapshot Removed'
         
 
     @mock.patch('modules.database.DB_VPS')
