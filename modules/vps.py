@@ -87,7 +87,7 @@ class VMFunc:
 			if   (self.getCommand() == "start"): self.status = self.start(self.getID())
 			elif (self.getCommand() == "stop"): self.status = self.stop(self.getID())
 			elif (self.getCommand() == "createvps"): self.status = self.createvps(self.getID())
-			elif (self.getCommand() == "createdisk"): self.status = self.createDisk(self.getID())
+			elif (self.getCommand() == "createdisk"): self.status = self.createDiskImg(self.getID())
 			elif (self.getCommand() == "deletedisk"): self.status = self.deleteDisk(self.getID())
 			elif (self.getCommand() == "delete"): self.status = self.delete(self.getID())
 			elif (self.getCommand() == "restartConsole"): self.status = self.restartConsole(self.getID())
@@ -325,29 +325,33 @@ class VMFunc:
 		if (ZFSEnable == 1):
 			cmd = ZFSCmd + " destroy " + ZFSRoot + "/" + str(id)
 
-			self.execcmd(cmd)
+			output,error = self.execcmd(cmd)
+			
+			return error
 
-			print "ZFS Destroy CMD = {}\n".format(cmd)
+			#return "ZFS Destroy CMD = {}\n".format(cmd)
 		else:
 			if os.path.exists(PathOrig):
-				os.renames(PathOrig,PathDest)
+				return os.renames(PathOrig,PathDest)
+			else:
+				return "Disk doesn't exist"
 			    
-		status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
+		#status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
 
-		return status
+		#return status
 
 	def generateScript(self,file,data):
 
 		self.file = file
 		self.data = data
-        
+		
 		try:
 			f = open(self.file, 'w')
 			f.write("#!/bin/sh\n")
 			f.write(self.data)
 			f.close()
 		except:
-			print "Error with ".format(self.file)
+			return "Error occurred generating script".format(self.file)
 
 	def genBhyveCommands(self,RAM,BootDrive,Name,NetInt,Drives,Console,ID,Path):
 		BhyveLoad       = "/usr/sbin/bhyveload -m {} -d {} {}\n".format(RAM,BootDrive,ID)
@@ -424,7 +428,7 @@ class VMFunc:
 		StopScript 	= vps.getStopScript()
 		Disks 		= vps.getDisks(id)
 		Devices 	= vps.getDevices(id)
-
+		
 		if (Path == ""): Path = RootPath + "/" + str(ID)
 
 		Interface = 2
@@ -576,30 +580,35 @@ class VMFunc:
 
 		return "VPS {} Update\n".format(vps_id)
 
-	def createDisk(self,id):
-
-		cnx = mysql.connector.connect(**config)
+	def createDiskImg(self,id):
+		
+		vps = modules.database.DB_VPS()
+		#return vps.getImage()	
+		
+		'''cnx = mysql.connector.connect(**config)
 		cursor = cnx.cursor()
 		cursor.execute("select size,vps_id from disk where id=%s",(id,))
-		Disk = cursor.fetchone()
-
+		Disk = cursor.fetchone()'''
+		
+		Disk = vps.getDisk(id)
+	
 		vps_id = Disk[1]
 		size = Disk[0]
 		Interface = 2
-
-		vps = database.DB_VPS()
+		
 		vps.getVPS(vps_id)
-
-		ID = vps.getID()
-		Name = vps.getName()
-		RAM = vps.getRAM()
-		Console = vps.getConsole()
-		Image = vps.getImage()
-		Path = vps.getPath()
+		
+		ID 			= vps.getID()
+		Name 		= vps.getName()
+		RAM 		= vps.getRAM()
+		Console 	= vps.getConsole()
+		Image 		= vps.getImage()
+		Path 		= vps.getPath()
 		StartScript = vps.getStartScript()
-		StopScript = vps.getStopScript()
-
-
+		StopScript 	= vps.getStopScript()
+		
+		#return "Create Disk for VPS 1\n"
+		
 		Disks = vps.getDisks(vps_id)
 
 		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
@@ -608,10 +617,9 @@ class VMFunc:
 		if (Image == 1): SrcImg = SrcImgFreeBSD
 		elif (Image == 2): SrcImg = SrcImgUbuntu
 		elif (Image == 3): SrcImg = SrcImgCentos
-
-
+		
 		Devices = vps.getDevices(vps_id)
-
+		
 		NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
 		BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID,Path)
 
@@ -621,9 +629,11 @@ class VMFunc:
 		BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID,VPSPath)
 
 		StartScript = "{}{}/start.sh".format(RootPath,vps_id)
+		
 
 		# FreeBSD
 		if (Image == 1):
+			#return "Create Disk for VPS 1\n"
 			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
 
 		elif (Image == 2):
@@ -632,14 +642,13 @@ class VMFunc:
 		elif (Image == 3):
 			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
 
-
 		self.generateScript(StartScript,StartScriptData)
 
 		return "Create Disk for VPS {}\n".format(vps_id)
 
 	def deleteDisk(self,id):
 		
-		vps = database.DB_VPS()
+		vps = modules.database.DB_VPS()
 
 		vps_id = vps.getDiskVPSID(id)
 
@@ -662,10 +671,18 @@ class VMFunc:
 		if (Image == 1): SrcImg = SrcImgFreeBSD
 		elif (Image == 2): SrcImg = SrcImgUbuntu
 		elif (Image == 3): SrcImg = SrcImgCentos
+		else:
+			return "Error: no image found"
 
 		delete_disk = "rm {}/{}".format(VPSPath,id)
 
-		output = subprocess.Popen(['/bin/sh', '-c', delete_disk], stdout=subprocess.PIPE)
+		try:
+			process = subprocess.Popen(['/bin/sh', '-c', delete_disk], stdout=subprocess.PIPE)
+			output,err = process.communicate()
+		except:
+			#return process.returncode
+			return "Delete disk failed"
+		
 
 		vps.deleteDisk(id)
 
@@ -697,10 +714,13 @@ class VMFunc:
 
 		elif (Image == 3):
 			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
+		
 
 
 
 		StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
-		self.generateScript(StartScript,StartScriptData)
-
+		
+		if (self.generateScript(StartScript,StartScriptData)):
+			return "An error occurred generating script"
+		
 		return "Disk {} Delete\n".format(id)

@@ -79,6 +79,12 @@ class DB_VPS:
 		VPS = self.cursor.fetchone()
 
 		return(VPS[0])
+	
+	def getDisk(self,id):
+		cnx = mysql.connector.connect(**config)
+		cursor = cnx.cursor()
+		cursor.execute("select size,vps_id from disk where id=%s",(id,))
+		return cursor.fetchone()
 
 	def getDisks(self,id):
 		

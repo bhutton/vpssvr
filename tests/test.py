@@ -3,6 +3,7 @@ import os
 import mock
 import modules.database
 import modules.vps
+import subprocess
 
 
 class TestStatus(unittest.TestCase):
@@ -130,10 +131,10 @@ class TestStatus(unittest.TestCase):
     @mock.patch('os.path.exists')
     @mock.patch('modules.vps.VMFunc.checkSecurity')  
     def test_executeCommand_createvps(
-            self, 
+            self,
+            exec_function_checkSecurity,
+            exec_function_ospathexists,  
             exec_function_dbconnect,
-            exec_function_ospathexists,
-            exec_function_checkSecurity, 
             exec_function_getvps,
             exec_function_getid,
             exec_function_getName,
@@ -161,23 +162,175 @@ class TestStatus(unittest.TestCase):
         modules.database.DB_VPS.getDisks.return_value = '234'
         modules.database.DB_VPS.getDevices.return_value = '1'
         
-        modules.database.DB_VPS.getDevices.return_value = '1'
-        
         os.path.exists('/Users/ben/repos/vpssvr').return_value = ''
         
-        
-        
         modules.vps.VMFunc.checkSecurity.return_value = 'Pass'
-        #modules.vps.VMFunc.getID.return_value = '1'
         
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,createvps")
         assert vpsConn.executeCommand() == 'Created VPS: 1\n'
         
+    def altPOpen(self):
+        return None
     
-    def test_executeCommand_createdisk(self):
+    @mock.patch('modules.vps.VMFunc.generateScript')
+    @mock.patch('subprocess.Popen')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    def test_executeCommand_creatediskimg(
+            self, 
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen,
+            exec_function_genscript):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'error')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        exec_function_genscript.return_value = 1
+        
+        exec_function_subprocess_Popen.return_value = process_mock
+        
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,createdisk")
+        
         assert vpsConn.executeCommand() == 'Create Disk for VPS 1\n'
         
+    @mock.patch('modules.vps.VMFunc.generateScript')
+    @mock.patch('subprocess.Popen')    
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    def test_executeCommand_deletediskimg_success(
+            self, 
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen,
+            exec_function_genscript):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'success')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        #exec_function_subprocess_Popen().return_value = None
+        exec_function_subprocess_Popen.return_value = process_mock
+        
+        exec_function_genscript.return_value = None
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
+        
+        assert vpsConn.executeCommand() == 'Disk 1 Delete\n'
+        
+    @mock.patch('modules.vps.VMFunc.generateScript')
+    @mock.patch('subprocess.Popen')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    def test_executeCommand_deletediskimg_fail_on_script_creation(
+            self, 
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen,
+            exec_function_genscript):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'error')}
+        process_mock.configure_mock(**attrs)
+    
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        exec_function_subprocess_Popen.return_value = process_mock
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
+        
+        assert vpsConn.executeCommand() == 'An error occurred generating script'
+
+    @mock.patch('modules.vps.VMFunc.generateScript')
+    @mock.patch('subprocess.Popen')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    def test_executeCommand_deletediskimg_fail_on_delete(
+            self, 
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen,
+            exec_function_genscript):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'error')}
+        process_mock.configure_mock(**attrs)
+        
+    
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        
+        exec_function_subprocess_Popen.return_value = -1
+             
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
+        
+        assert vpsConn.executeCommand() == 'Delete disk failed'
+        
+    @mock.patch('modules.vps.VMFunc.generateScript')
+    @mock.patch('subprocess.Popen')    
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    def test_executeCommand_deletediskimg_fail_on_image(
+            self, 
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_subprocess_Popen,
+            exec_function_genscript):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'success')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        #exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        #exec_function_subprocess_Popen().return_value = None
+        exec_function_subprocess_Popen.return_value = process_mock
+        
+        exec_function_genscript.return_value = None
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
+        
+        assert vpsConn.executeCommand() == 'Error: no image found'
+    
+    @mock.patch('os.path.exists')
+    @mock.patch('os.rename')
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.checkSecurity')    
+    def test_executeCommand_delete(
+            self,
+            exec_function_checkSecurity,
+            exec_function_dbconnect,
+            exec_function_os_rename,
+            exec_function_os_path_exists):
+        
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'success')}
+        process_mock.configure_mock(**attrs)
+        
+        exec_function_checkSecurity.return_value = 'Pass'
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        exec_function_os_rename.return_value = process_mock
+        exec_function_os_path_exists.return_value = process_mock
+        
+        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,delete")
+        
+        print vpsConn.executeCommand()
+        assert vpsConn.executeCommand() == None
 
     @mock.patch('modules.database.DB_VPS')
     @mock.patch('modules.vps.VMFunc.execcmd')    
