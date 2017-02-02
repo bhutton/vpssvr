@@ -267,9 +267,9 @@ class VMFunc:
 
 		pid = out.split()
 
-		if (len(pid) > 0):
-		    term = "kill -TERM " + str(pid[2])
-		    output2 = subprocess.Popen(['/bin/sh', '-c', term], stdout=subprocess.PIPE)
+		if (len(pid) > 1):
+			term = "kill -TERM " + str(pid[2])
+			output2 = subprocess.Popen(['/bin/sh', '-c', term], stdout=subprocess.PIPE)
 
 		output3 = subprocess.Popen(['/bin/sh', '-c', startconsole], stdout=subprocess.PIPE)
 
@@ -507,7 +507,7 @@ class VMFunc:
 
 	def updateVPS(self,vps_id):
 		
-		vps = database.DB_VPS()
+		vps = modules.database.DB_VPS()
 		vps.getVPS(vps_id)
 
 		ID = vps.getID()
@@ -568,6 +568,8 @@ class VMFunc:
 			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
 
 			print "Linux Device - Image 3 = {}".format(StartScriptData)
+		else:
+			return "Error: no image specified"
 
 		StartConsoleScript = ShellInABox
 		StopConsoleScript = StopShellInABox
