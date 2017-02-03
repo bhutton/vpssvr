@@ -199,6 +199,9 @@ class TestStatus(unittest.TestCase):
         
         assert vpsConn.executeCommand() == 'Create Disk for VPS 1\n'
         
+        
+class TestDelete(unittest.TestCase):
+    
     @mock.patch('modules.vps.VMFunc.generateScript')
     @mock.patch('subprocess.Popen')    
     @mock.patch('modules.database.DB_VPS')
@@ -330,6 +333,9 @@ class TestStatus(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,delete")
         
         assert vpsConn.executeCommand() == None
+        
+        
+class TestConsole(unittest.TestCase):
     
     @mock.patch('subprocess.Popen')
     @mock.patch('modules.database.DB_VPS')
@@ -352,6 +358,9 @@ class TestStatus(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,restartConsole")
         
         assert vpsConn.executeCommand() == "Terminal Restarted\n"
+    
+    
+class TestUpdateVPS(unittest.TestCase):
     
     
     @mock.patch('modules.vps.VMFunc.generateScript')
@@ -435,6 +444,11 @@ class TestStatus(unittest.TestCase):
         
         assert vpsConn.executeCommand() == 'Error: no image specified'
         
+    
+    
+        
+        
+class TestSnapShots(unittest.TestCase):
     
     @mock.patch('modules.database.DB_VPS')
     @mock.patch('modules.vps.VMFunc.checkSecurity') 
@@ -521,7 +535,21 @@ class TestStatus(unittest.TestCase):
         
         assert vpsConn.executeCommand() == 'Snapshot Removed'
         
-
+        
+class TestNetwork(unittest.TestCase):
+    
+    @mock.patch('modules.database.DB_VPS')
+    @mock.patch('modules.vps.VMFunc.execcmd')
+    def test_stopNetwork(self, exec_function_dbconnect, exec_function):
+        
+        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        
+        vpsConn = modules.vps.VMFunc("1234,1,status\n")
+        
+        modules.vps.VMFunc.execcmd.return_value = 'tap111: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
+        assert vpsConn.getNetStatus(1) == 'UP'
+        
+        
     @mock.patch('modules.database.DB_VPS')
     @mock.patch('modules.vps.VMFunc.execcmd')    
     def test_get_status(self, exec_function_dbconnect, exec_function):
@@ -535,15 +563,5 @@ class TestStatus(unittest.TestCase):
         
         modules.vps.VMFunc.execcmd.return_value = ''
         assert vpsConn.getNetStatus(1) == 'DOWN'
-    
-    @mock.patch('modules.database.DB_VPS')    
-    @mock.patch('modules.vps.VMFunc.execcmd')
-    def test_stopNetwork(self, exec_function_dbconnect, exec_function):
-        
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
-        
-        vpsConn = modules.vps.VMFunc("1234,1,status\n")
-        modules.vps.VMFunc.execcmd.return_value = 'tap111: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
-        assert vpsConn.getNetStatus(1) == 'UP'
         
     
