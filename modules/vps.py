@@ -144,7 +144,7 @@ class VMFunc:
 			f.write(data)
 			f.close()
 		except:
-			print "Error with ".format(LogFile)
+			return "Error with ".format(LogFile)
 
 	def execbhyve(self,command,ID):
 		self.command = command
@@ -198,8 +198,8 @@ class VMFunc:
 	
 			self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
 	
-			print "{}\n".format(self.command)
-			print "Snapshot name = {}".format(snapshot)
+			#print "{}\n".format(self.command)
+			#print "Snapshot name = {}".format(snapshot)
 			
 			self.id = RootPath + str(id)
 			
@@ -220,7 +220,7 @@ class VMFunc:
 
 			self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
 	
-			print "{}\n".format(self.command) 
+			#print "{}\n".format(self.command) 
 	
 			self.id = RootPath + str(id)
 	
@@ -242,7 +242,7 @@ class VMFunc:
 		try:
 			self.command = ZFSCmd + ' rollback ' + snapshot
 	
-			print "Command = {}".format(self.command)
+			#print "Command = {}".format(self.command)
 	
 			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
 				 stdout=subprocess.PIPE, 
@@ -260,7 +260,7 @@ class VMFunc:
 
 		self.command = ZFSCmd + ' destroy ' + snapshot
 
-		print "Command = {}".format(self.command)
+		#print "Command = {}".format(self.command)
 
 		proc = subprocess.Popen(['/bin/sh', '-c', self.command],
 			 stdout=subprocess.PIPE, 
@@ -301,7 +301,7 @@ class VMFunc:
 		
 		if (vps_startscript == ""): vps_name = str(self.id)
 
-		print "{}{}/installing.txt".format(RootPath,vps_id)
+		#print "{}{}/installing.txt".format(RootPath,vps_id)
 
 		if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
 			return "Installing"
@@ -466,13 +466,13 @@ class VMFunc:
 			if (ZFSEnable == 1):
 				cmd = ZFSCmd + " create " + ZFSRoot + "/" + str(ID)
 
-				print "ZFS Command = {}\n".format(cmd)
+				#print "ZFS Command = {}\n".format(cmd)
 				self.execcmd(cmd)
 			else:
 				os.makedirs(Path)
 
 		if (self.createDisk == "on"):
-			print "Copying file... {} to {}".format(SrcImg,BootDrive)
+			#print "Copying file... {} to {}".format(SrcImg,BootDrive)
 
 			cmd = Touch + " " + RootPath + str(ID) + "/installing.txt" + " && " + CP + " " + SrcImg + " " + BootDrive + " && " + RM + " " + RootPath + str(ID) + "/installing.txt"
 
@@ -496,7 +496,7 @@ class VMFunc:
 				self.generateScript(DeviceMapScript,DevicemapData)
 
 				StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
-				print "Linux Device - Image 2 = {}".format(DevicemapData)
+				#print "Linux Device - Image 2 = {}".format(DevicemapData)
 
 			elif (Image == 3):
 				DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path,LinuxBoot)
@@ -504,7 +504,7 @@ class VMFunc:
 				self.generateScript(DeviceMapScript,DevicemapData)
 
 				StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
-				print "Linux Device - Image 3 = {}".format(DevicemapData)
+				#print "Linux Device - Image 3 = {}".format(DevicemapData)
  
 
 			StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl,ID)
@@ -538,7 +538,7 @@ class VMFunc:
 		if (Path == ""): VPSPath = RootPath + str(vps_id)
 		else: VPSPath = Path
 
-		print "VPS Path: {}".format(VPSPath)
+		#print "VPS Path: {}".format(VPSPath)
 
 		Devices = vps.getDevices(vps_id)
 		StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref,ID)
@@ -570,7 +570,7 @@ class VMFunc:
 			self.generateScript(DeviceMapScript,DevicemapData)
 			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
 
-			print "Linux Device - Image 2 = {}".format(DevicemapData)
+			#print "Linux Device - Image 2 = {}".format(DevicemapData)
 
 		# Centos
 		elif (Image == 3):
@@ -581,7 +581,7 @@ class VMFunc:
 
 			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
 
-			print "Linux Device - Image 3 = {}".format(StartScriptData)
+			#print "Linux Device - Image 3 = {}".format(StartScriptData)
 		else:
 			return "Error: no image specified"
 
