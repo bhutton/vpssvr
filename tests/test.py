@@ -26,7 +26,6 @@ class TestStatus(unittest.TestCase):
             exec_function_checkSecurity, 
             exec_function_execcmd):
         
-        
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
         
         # Check that tap interface associated with VM is UP
@@ -41,8 +40,8 @@ class TestStatus(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,netStatus")
         assert vpsConn.executeCommand() == 'DOWN'
     
-    
-    
+
+class TestStartStop(unittest.TestCase):
     
     #
     # Starting a VPS
@@ -77,8 +76,6 @@ class TestStatus(unittest.TestCase):
         assert vpsConn.executeCommand() == 'Started VPS 1\n'
     
     
-    
-    
     #
     # Stopping a VPS
     #
@@ -111,7 +108,7 @@ class TestStatus(unittest.TestCase):
         assert vpsConn.executeCommand() == 'Stopped VPS 1\n'
     
     
-    
+class TestCreate(unittest.TestCase):
     
     #
     # Creating a VPS
@@ -221,7 +218,6 @@ class TestDelete(unittest.TestCase):
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().getDisk.return_value = (1,1,3)
-        #exec_function_subprocess_Popen().return_value = None
         exec_function_subprocess_Popen.return_value = process_mock
         
         exec_function_genscript.return_value = None
@@ -229,7 +225,8 @@ class TestDelete(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
         
         assert vpsConn.executeCommand() == 'Disk 1 Delete\n'
-        
+     
+       
     @mock.patch('modules.vps.VMFunc.generateScript')
     @mock.patch('subprocess.Popen')
     @mock.patch('modules.database.DB_VPS')
