@@ -210,7 +210,8 @@ class VMFunc:
 	
 			output,error = proc.communicate()
 
-			return "Command successful"
+			#return "Command successful"
+			return "Snapshot name = {}".format(snapshot)
 		except:
 			return "An error occurred"
 

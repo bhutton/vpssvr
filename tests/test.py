@@ -4,6 +4,7 @@ import mock
 import modules.database
 import modules.vps
 import subprocess
+import time
 
 
 class TestStatus(unittest.TestCase):
@@ -461,9 +462,11 @@ class TestSnapShots(unittest.TestCase):
         exec_function_checkSecurity.return_value = 'Pass'
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
         
+        snapshotReturnValue = "Snapshot name = " + str(time.time())
+        
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,takeSnapshot")
         
-        assert vpsConn.executeCommand() == 'Command successful'
+        assert vpsConn.executeCommand() == snapshotReturnValue
         
     @mock.patch('subprocess.Popen')
     @mock.patch('modules.database.DB_VPS')
