@@ -3,7 +3,6 @@ import os
 import mock
 import modules.database
 import modules.vps
-import subprocess
 import time
 
 
@@ -16,15 +15,14 @@ class TestStatus(unittest.TestCase):
         assert vpsConn.executeCommand() == "Connection Failed"
     
     
-    
     # Test NetStatus Module via the Execute Command control function
     @mock.patch('modules.database.DB_VPS')
     @mock.patch('modules.vps.VMFunc.execcmd')
     @mock.patch('modules.vps.VMFunc.checkSecurity')  
     def test_executeCommand_netStatus(
-            self, 
+            self,
             exec_function_dbconnect,
-            exec_function_checkSecurity, 
+            exec_function_checkSecurity,
             exec_function_execcmd):
         
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
@@ -297,9 +295,7 @@ class TestDelete(unittest.TestCase):
         
         exec_function_checkSecurity.return_value = 'Pass'
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
-        #exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().getDisk.return_value = (1,1,3)
-        #exec_function_subprocess_Popen().return_value = None
         exec_function_subprocess_Popen.return_value = process_mock
         
         exec_function_genscript.return_value = None
@@ -384,8 +380,6 @@ class TestUpdateVPS(unittest.TestCase):
         modules.database.DB_VPS.getName.return_value = 'MyTestVPS'
         modules.database.DB_VPS.getRAM.return_value = '512'
         modules.database.DB_VPS.getConsole.return_value = '1'
-        #modules.database.DB_VPS.getImage.return_value = '1'
-        #modules.database.DB_VPS.getPath.return_value = '/Users/ben/repos/vpssvr'
         modules.database.DB_VPS.getStartScript.return_value = '/home/startme.sh'
         modules.database.DB_VPS.getStopScript.return_value = '/home/stopme.sh'
         modules.database.DB_VPS.getDisks.return_value = '234'
@@ -564,4 +558,7 @@ class TestNetwork(unittest.TestCase):
         modules.vps.VMFunc.execcmd.return_value = ''
         assert vpsConn.getNetStatus(1) == 'DOWN'
         
+        
+if __name__ == '__main__':
+    unittest.main()
     

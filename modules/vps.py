@@ -83,7 +83,7 @@ class VMFunc:
 	def executeCommand(self):
 
 		if (self.checkSecurity() == "Pass"):
-			
+
 			if   (self.getCommand() == "start"): self.status = self.start(self.getID())
 			elif (self.getCommand() == "stop"): self.status = self.stop(self.getID())
 			elif (self.getCommand() == "createvps"): self.status = self.createvps(self.getID())
@@ -103,7 +103,7 @@ class VMFunc:
 
 		else:
 			self.status = "Connection Failed"
-			
+
 		return self.status
 
 	def getStatus(self):
@@ -112,12 +112,12 @@ class VMFunc:
 	def getNetStatus(self,id):
 		vps = modules.database.DB_VPS()
 		devices = vps.getDevices(id)
-		
+
 		output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
-		
+
 		if (output == ""): output = "DOWN"
 		else: output = "UP"
-		
+
 		return output
 
 	def stopNetwork(self,id):
@@ -138,7 +138,7 @@ class VMFunc:
 		return self.id
 
 	def logentry(self,data):
-		
+
 		try:
 			f = open(LogFile, 'a')
 			f.write(data)
@@ -150,7 +150,7 @@ class VMFunc:
 		self.command = command
 		self.id = ID
 
-		pid = os.fork() 
+		pid = os.fork()
 
 		if (pid == 0):
 
@@ -159,7 +159,7 @@ class VMFunc:
 
 			proc = Popen(['/bin/sh', '-c', self.command, '999'],
 			     cwd=self.id,
-			     stdout=subprocess.PIPE, 
+			     stdout=subprocess.PIPE,
 			     stderr=subprocess.STDOUT,
 			     close_fds=True)
 
@@ -167,7 +167,7 @@ class VMFunc:
 
 	def execcmd(self,cmd):
 		proc = subprocess.Popen(['/bin/sh', '-c', cmd],
-			 stdout=subprocess.PIPE, 
+			 stdout=subprocess.PIPE,
 		     stderr=subprocess.STDOUT,
 		     close_fds=True)
 
@@ -176,12 +176,12 @@ class VMFunc:
 		return (output,error)
 
 	def execcmdFork(self,cmd):
-		pid = os.fork() 
+		pid = os.fork()
 
 		if (pid == 0):
 
 			proc = subprocess.Popen(['/bin/sh', '-c', cmd],
-				 stdout=subprocess.PIPE, 
+				 stdout=subprocess.PIPE,
 			     stderr=subprocess.STDOUT,
 			     close_fds=True)
 
@@ -191,23 +191,23 @@ class VMFunc:
 
 
 	def takeSnapshot(self,id,snapshot):
-		
+
 		try:
 
 			if (snapshot == ""): snapshot = str(time.time())
-	
+
 			self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
-	
+
 			#print "{}\n".format(self.command)
 			#print "Snapshot name = {}".format(snapshot)
-			
+
 			self.id = RootPath + str(id)
-			
+
 			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-				 stdout=subprocess.PIPE, 
+				 stdout=subprocess.PIPE,
 			     stderr=subprocess.STDOUT,
 			     close_fds=True)
-	
+
 			output,error = proc.communicate()
 
 			#return "Command successful"
@@ -216,44 +216,44 @@ class VMFunc:
 			return "An error occurred"
 
 	def listSnapshot(self,id):
-		
+
 		try:
 
 			self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
-	
-			#print "{}\n".format(self.command) 
-	
+
+			#print "{}\n".format(self.command)
+
 			self.id = RootPath + str(id)
-	
+
 			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-				 stdout=subprocess.PIPE, 
+				 stdout=subprocess.PIPE,
 			     stderr=subprocess.STDOUT,
 			     close_fds=True)
-	
-			
-	
+
+
+
 			output,error = proc.communicate()
-	
+
 			return output
 		except:
 			return "An error occured"
 
 	def restoreSnapshot(self,id,snapshot):
-		
+
 		try:
 			self.command = ZFSCmd + ' rollback ' + snapshot
-	
+
 			#print "Command = {}".format(self.command)
-	
+
 			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-				 stdout=subprocess.PIPE, 
+				 stdout=subprocess.PIPE,
 			     stderr=subprocess.STDOUT,
 			     close_fds=True)
-			
+
 			output,error = proc.communicate()
-	
+
 			return output
-		
+
 		except:
 			return error
 
@@ -264,12 +264,13 @@ class VMFunc:
 		#print "Command = {}".format(self.command)
 
 		proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-			 stdout=subprocess.PIPE, 
+			 stdout=subprocess.PIPE,
 		     stderr=subprocess.STDOUT,
 		     close_fds=True)
 
 
 		return "Snapshot Removed"
+
 
 
 	def restartConsole(self,id):
@@ -291,7 +292,10 @@ class VMFunc:
 		return "Terminal Restarted\n"
 
 	def checkStatus(self,vps_id):
+
+
 		self.id = vps_id
+
 
 		VPS_Conn = database.DB_VPS()
 		VPS = VPS_Conn.getVPS(self.id)
@@ -299,7 +303,7 @@ class VMFunc:
 		vps_id          = str(VPS[0])
 		vps_name        = VPS[1]
 		vps_startscript = VPS[5]
-		
+
 		if (vps_startscript == ""): vps_name = str(self.id)
 
 		#print "{}{}/installing.txt".format(RootPath,vps_id)
@@ -314,7 +318,7 @@ class VMFunc:
 			return "Stopped"
 
 	def start(self,id):
-        
+
 		VPS_DB = modules.database.DB_VPS()
 		VPS = VPS_DB.getVPS(id)
 
@@ -341,7 +345,7 @@ class VMFunc:
 			cmd = ZFSCmd + " destroy " + ZFSRoot + "/" + str(id)
 
 			output,error = self.execcmd(cmd)
-			
+
 			return error
 
 			#return "ZFS Destroy CMD = {}\n".format(cmd)
@@ -350,7 +354,7 @@ class VMFunc:
 				return os.renames(PathOrig,PathDest)
 			else:
 				return "Disk doesn't exist"
-			    
+
 		#status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
 
 		#return status
@@ -359,7 +363,7 @@ class VMFunc:
 
 		self.file = file
 		self.data = data
-		
+
 		try:
 			f = open(self.file, 'w')
 			f.write("#!/bin/sh\n")
@@ -429,10 +433,10 @@ class VMFunc:
 		return (BootDrive,Drives,self.interface,LinuxBoot)
 
 	def createvps(self,id):
-		
+
 		vps = modules.database.DB_VPS()
 		vps.getVPS(id)
-		
+
 		ID 			= vps.getID()
 		Name 		= vps.getName()
 		RAM 		= vps.getRAM()
@@ -443,7 +447,7 @@ class VMFunc:
 		StopScript 	= vps.getStopScript()
 		Disks 		= vps.getDisks(id)
 		Devices 	= vps.getDevices(id)
-		
+
 		if (Path == ""): Path = RootPath + "/" + str(ID)
 
 		Interface = 2
@@ -506,7 +510,7 @@ class VMFunc:
 
 				StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
 				#print "Linux Device - Image 3 = {}".format(DevicemapData)
- 
+
 
 			StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl,ID)
 			StartConsoleScript = ShellInABox
@@ -521,7 +525,7 @@ class VMFunc:
 
 
 	def updateVPS(self,vps_id):
-		
+
 		vps = modules.database.DB_VPS()
 		vps.getVPS(vps_id)
 
@@ -590,7 +594,7 @@ class VMFunc:
 		StopConsoleScript = StopShellInABox
 
 		self.generateScript(StartConsole,StartConsoleScript)
-		self.generateScript(StopConsole,StopConsoleScript)        
+		self.generateScript(StopConsole,StopConsoleScript)
 
 		self.generateScript(StartScript,StartScriptData)
 		self.generateScript(StopScript,StopScriptData)
@@ -598,23 +602,23 @@ class VMFunc:
 		return "VPS {} Update\n".format(vps_id)
 
 	def createDiskImg(self,id):
-		
+
 		vps = modules.database.DB_VPS()
-		#return vps.getImage()	
-		
+		#return vps.getImage()
+
 		'''cnx = mysql.connector.connect(**config)
 		cursor = cnx.cursor()
 		cursor.execute("select size,vps_id from disk where id=%s",(id,))
 		Disk = cursor.fetchone()'''
-		
+
 		Disk = vps.getDisk(id)
-	
+
 		vps_id = Disk[1]
 		size = Disk[0]
 		Interface = 2
-		
+
 		vps.getVPS(vps_id)
-		
+
 		ID 			= vps.getID()
 		Name 		= vps.getName()
 		RAM 		= vps.getRAM()
@@ -623,9 +627,9 @@ class VMFunc:
 		Path 		= vps.getPath()
 		StartScript = vps.getStartScript()
 		StopScript 	= vps.getStopScript()
-		
+
 		#return "Create Disk for VPS 1\n"
-		
+
 		Disks = vps.getDisks(vps_id)
 
 		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
@@ -634,9 +638,9 @@ class VMFunc:
 		if (Image == 1): SrcImg = SrcImgFreeBSD
 		elif (Image == 2): SrcImg = SrcImgUbuntu
 		elif (Image == 3): SrcImg = SrcImgCentos
-		
+
 		Devices = vps.getDevices(vps_id)
-		
+
 		NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
 		BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID,Path)
 
@@ -646,7 +650,7 @@ class VMFunc:
 		BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID,VPSPath)
 
 		StartScript = "{}{}/start.sh".format(RootPath,vps_id)
-		
+
 
 		# FreeBSD
 		if (Image == 1):
@@ -664,12 +668,12 @@ class VMFunc:
 		return "Create Disk for VPS {}\n".format(vps_id)
 
 	def deleteDisk(self,id):
-		
+
 		vps = modules.database.DB_VPS()
 
 		vps_id = vps.getDiskVPSID(id)
 
-				
+
 		vps.getVPS(vps_id)
 
 		ID = vps.getID()
@@ -680,7 +684,7 @@ class VMFunc:
 		Path = vps.getPath()
 		StartScript = vps.getStartScript()
 		StopScript = vps.getStopScript()
-		
+
 
 		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
 		else: VPSPath = Path
@@ -699,7 +703,7 @@ class VMFunc:
 		except:
 			#return process.returncode
 			return "Delete disk failed"
-		
+
 
 		vps.deleteDisk(id)
 
@@ -731,13 +735,13 @@ class VMFunc:
 
 		elif (Image == 3):
 			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
-		
+
 
 
 
 		StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
-		
+
 		if (self.generateScript(StartScript,StartScriptData)):
 			return "An error occurred generating script"
-		
+
 		return "Disk {} Delete\n".format(id)
