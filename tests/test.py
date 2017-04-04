@@ -1,6 +1,7 @@
 import unittest
 import os
 import mock
+from mock import patch
 import modules.database
 import modules.vps
 import time
@@ -16,9 +17,9 @@ class TestStatus(unittest.TestCase):
     
     
     # Test NetStatus Module via the Execute Command control function
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.execcmd')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')  
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.execcmd')
+    @patch('modules.vps.VMFunc.checkSecurity')  
     def test_executeCommand_netStatus(
             self,
             exec_function_dbconnect,
@@ -45,13 +46,13 @@ class TestStartStop(unittest.TestCase):
     #
     # Starting a VPS
     #
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.database.DB_VPS.stopConsole')
-    @mock.patch('modules.database.DB_VPS.stopCommand')
-    @mock.patch('modules.database.DB_VPS.startCommand')
-    @mock.patch('modules.database.DB_VPS.getVPS')
-    @mock.patch('modules.vps.VMFunc.execbhyve')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')  
+    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DB_VPS.stopConsole')
+    @patch('modules.database.DB_VPS.stopCommand')
+    @patch('modules.database.DB_VPS.startCommand')
+    @patch('modules.database.DB_VPS.getVPS')
+    @patch('modules.vps.VMFunc.execbhyve')
+    @patch('modules.vps.VMFunc.checkSecurity')  
     def test_executeCommand_start(
             self, 
             exec_function_dbconnect,
@@ -78,12 +79,12 @@ class TestStartStop(unittest.TestCase):
     #
     # Stopping a VPS
     #
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.database.DB_VPS.stopConsole')
-    @mock.patch('modules.database.DB_VPS.stopCommand')
-    @mock.patch('modules.database.DB_VPS.getVPS')
-    @mock.patch('modules.vps.VMFunc.execbhyve')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')  
+    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DB_VPS.stopConsole')
+    @patch('modules.database.DB_VPS.stopCommand')
+    @patch('modules.database.DB_VPS.getVPS')
+    @patch('modules.vps.VMFunc.execbhyve')
+    @patch('modules.vps.VMFunc.checkSecurity')  
     def test_executeCommand_stop(
             self, 
             exec_function_dbconnect,
@@ -112,20 +113,20 @@ class TestCreate(unittest.TestCase):
     #
     # Creating a VPS
     #
-    @mock.patch('modules.database.DB_VPS.getDevices')
-    @mock.patch('modules.database.DB_VPS.getDisks')
-    @mock.patch('modules.database.DB_VPS.getStopScript')
-    @mock.patch('modules.database.DB_VPS.getStartScript')
-    @mock.patch('modules.database.DB_VPS.getPath')
-    @mock.patch('modules.database.DB_VPS.getImage')
-    @mock.patch('modules.database.DB_VPS.getConsole')
-    @mock.patch('modules.database.DB_VPS.getRAM')
-    @mock.patch('modules.database.DB_VPS.getName')
-    @mock.patch('modules.database.DB_VPS.getID')
-    @mock.patch('modules.database.DB_VPS.getVPS')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('os.path.exists')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')  
+    @patch('modules.database.DB_VPS.getDevices')
+    @patch('modules.database.DB_VPS.getDisks')
+    @patch('modules.database.DB_VPS.getStopScript')
+    @patch('modules.database.DB_VPS.getStartScript')
+    @patch('modules.database.DB_VPS.getPath')
+    @patch('modules.database.DB_VPS.getImage')
+    @patch('modules.database.DB_VPS.getConsole')
+    @patch('modules.database.DB_VPS.getRAM')
+    @patch('modules.database.DB_VPS.getName')
+    @patch('modules.database.DB_VPS.getID')
+    @patch('modules.database.DB_VPS.getVPS')
+    @patch('modules.database.DB_VPS')
+    @patch('os.path.exists')
+    @patch('modules.vps.VMFunc.checkSecurity')  
     def test_executeCommand_createvps(
             self,
             exec_function_checkSecurity,
@@ -168,10 +169,10 @@ class TestCreate(unittest.TestCase):
     def altPOpen(self):
         return None
     
-    @mock.patch('modules.vps.VMFunc.generateScript')
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    @patch('modules.vps.VMFunc.generateScript')
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_creatediskimg(
             self, 
             exec_function_checkSecurity,
@@ -198,10 +199,10 @@ class TestCreate(unittest.TestCase):
         
 class TestDelete(unittest.TestCase):
     
-    @mock.patch('modules.vps.VMFunc.generateScript')
-    @mock.patch('subprocess.Popen')    
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    @patch('modules.vps.VMFunc.generateScript')
+    @patch('subprocess.Popen')    
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_success(
             self, 
             exec_function_checkSecurity,
@@ -226,10 +227,10 @@ class TestDelete(unittest.TestCase):
         assert vpsConn.executeCommand() == 'Disk 1 Delete\n'
      
        
-    @mock.patch('modules.vps.VMFunc.generateScript')
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    @patch('modules.vps.VMFunc.generateScript')
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_fail_on_script_creation(
             self, 
             exec_function_checkSecurity,
@@ -251,10 +252,10 @@ class TestDelete(unittest.TestCase):
         
         assert vpsConn.executeCommand() == 'An error occurred generating script'
 
-    @mock.patch('modules.vps.VMFunc.generateScript')
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    @patch('modules.vps.VMFunc.generateScript')
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_fail_on_delete(
             self, 
             exec_function_checkSecurity,
@@ -278,10 +279,10 @@ class TestDelete(unittest.TestCase):
         
         assert vpsConn.executeCommand() == 'Delete disk failed'
         
-    @mock.patch('modules.vps.VMFunc.generateScript')
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')
+    @patch('modules.vps.VMFunc.generateScript')
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_fail_on_image(
             self, 
             exec_function_checkSecurity,
@@ -304,10 +305,10 @@ class TestDelete(unittest.TestCase):
         
         assert vpsConn.executeCommand() == 'Error: no image found'
     
-    @mock.patch('os.path.exists')
-    @mock.patch('os.rename')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')    
+    @patch('os.path.exists')
+    @patch('os.rename')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')    
     def test_executeCommand_delete(
             self,
             exec_function_checkSecurity,
@@ -331,9 +332,9 @@ class TestDelete(unittest.TestCase):
         
 class TestConsole(unittest.TestCase):
     
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')    
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')    
     def test_executeCommand_restartConsole(
             self,
             exec_function_checkSecurity,
@@ -357,10 +358,10 @@ class TestConsole(unittest.TestCase):
 class TestUpdateVPS(unittest.TestCase):
     
     
-    @mock.patch('modules.vps.VMFunc.generateScript')
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')        
+    @patch('modules.vps.VMFunc.generateScript')
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')        
     def test_executeCommand_updateVPS_success(
             self,
             exec_function_checkSecurity,
@@ -397,10 +398,10 @@ class TestUpdateVPS(unittest.TestCase):
         assert vpsConn.executeCommand() == 'VPS 1 Update\n'
         
         
-    @mock.patch('modules.vps.VMFunc.generateScript')
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity')        
+    @patch('modules.vps.VMFunc.generateScript')
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity')        
     def test_executeCommand_updateVPS_error(
             self,
             exec_function_checkSecurity,
@@ -442,8 +443,8 @@ class TestUpdateVPS(unittest.TestCase):
         
 class TestSnapShots(unittest.TestCase):
     
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity') 
     def test_executeCommand_updateVPS_takeSnapshot(
             self,
             exec_function_checkSecurity,
@@ -462,9 +463,9 @@ class TestSnapShots(unittest.TestCase):
         
         assert vpsConn.executeCommand() == snapshotReturnValue
         
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity') 
     def test_executeCommand_updateVPS_listSnapshot(
             self,
             exec_function_checkSecurity,
@@ -484,9 +485,9 @@ class TestSnapShots(unittest.TestCase):
         
         assert vpsConn.executeCommand() == 'my snapshot list'
         
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity') 
     def test_executeCommand_updateVPS_restoreSnapshot(
             self,
             exec_function_checkSecurity,
@@ -507,9 +508,9 @@ class TestSnapShots(unittest.TestCase):
         assert vpsConn.executeCommand() == 'Snapshot Restored'
         
         
-    @mock.patch('subprocess.Popen')
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.checkSecurity') 
+    @patch('subprocess.Popen')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.checkSecurity') 
     def test_executeCommand_updateVPS_removeSnapshot(
             self,
             exec_function_checkSecurity,
@@ -532,8 +533,8 @@ class TestSnapShots(unittest.TestCase):
         
 class TestNetwork(unittest.TestCase):
     
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.execcmd')
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.execcmd')
     def test_stopNetwork(self, exec_function_dbconnect, exec_function):
         
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
@@ -544,8 +545,8 @@ class TestNetwork(unittest.TestCase):
         assert vpsConn.getNetStatus(1) == 'UP'
         
         
-    @mock.patch('modules.database.DB_VPS')
-    @mock.patch('modules.vps.VMFunc.execcmd')    
+    @patch('modules.database.DB_VPS')
+    @patch('modules.vps.VMFunc.execcmd')    
     def test_get_status(self, exec_function_dbconnect, exec_function):
         
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
