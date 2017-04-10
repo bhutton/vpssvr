@@ -436,10 +436,7 @@ class TestUpdateVPS(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,updatevps")
         
         assert vpsConn.executeCommand() == 'Error: no image specified'
-        
-    
-    
-        
+
         
 class TestSnapShots(unittest.TestCase):
     

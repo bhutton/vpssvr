@@ -5,9 +5,8 @@ import os, subprocess
 import shutil
 import ConfigParser
 import subprocess
-import modules.database
+import database as database
 import time
-
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -15,733 +14,760 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 Config = ConfigParser.ConfigParser()
 Config.read("{}/../configuration.cfg".format(dir_path))
 
-ShellInABoxPref     = Config.get('Global','ShellInABoxPref')
-RootPath            = Config.get('Global','RootPath')
-BasePath            = Config.get('Global','BasePath')
-ShellInABox         = Config.get('Global','ShellInABox')
-SrcImgFreeBSD       = Config.get('Global','SrcImgFreeBSD')
-SrcImgCentos        = Config.get('Global','SrcImgCentos')
-SrcImgDebian        = Config.get('Global','SrcImgDebian')
-SrcImgUbuntu        = Config.get('Global','SrcImgUbuntu')
-Bhyvectl            = Config.get('Global','Bhyvectl')
-PIDFile             = Config.get('Global','PIDFile')
-LogFile             = Config.get('Global','LogFile')
-HOST                = str(Config.get('Global','HOST'))
-PORT                = int(Config.get('Global','PORT'))
-PassString 			= Config.get('Global','PassString')
-ZFSEnable 			= int(Config.get('Global','ZFSEnable'))
-ZFSRoot 			= Config.get('Global','ZFSRoot')
-ZFSCmd 				= Config.get('Global','ZFSCmd')
-IFConfig 			= Config.get('Global','IFConfig')
-Touch 				= Config.get('Global','Touch')
-CP 		 			= Config.get('Global','CP')
-RM 					= Config.get('Global','RM')
+ShellInABoxPref = Config.get('Global', 'ShellInABoxPref')
+RootPath = Config.get('Global', 'RootPath')
+BasePath = Config.get('Global', 'BasePath')
+ShellInABox = Config.get('Global', 'ShellInABox')
+SrcImgFreeBSD = Config.get('Global', 'SrcImgFreeBSD')
+SrcImgCentos = Config.get('Global', 'SrcImgCentos')
+SrcImgDebian = Config.get('Global', 'SrcImgDebian')
+SrcImgUbuntu = Config.get('Global', 'SrcImgUbuntu')
+SrcImgWin10 = Config.get('Global', 'SrcImgWin10')
+Bhyvectl = Config.get('Global', 'Bhyvectl')
+PIDFile = Config.get('Global', 'PIDFile')
+LogFile = Config.get('Global', 'LogFile')
+HOST = str(Config.get('Global', 'HOST'))
+PORT = int(Config.get('Global', 'PORT'))
+PassString = Config.get('Global', 'PassString')
+ZFSEnable = int(Config.get('Global', 'ZFSEnable'))
+ZFSRoot = Config.get('Global', 'ZFSRoot')
+ZFSCmd = Config.get('Global', 'ZFSCmd')
+IFConfig = Config.get('Global', 'IFConfig')
+Touch = Config.get('Global', 'Touch')
+CP = Config.get('Global', 'CP')
+RM = Config.get('Global', 'RM')
 
-mysql_user          = Config.get('Database','mysql_user')
-mysql_password      = Config.get('Database','mysql_password')
-mysql_host          = Config.get('Database','mysql_host')
-mysql_database      = Config.get('Database','mysql_database')
-raise_on_warnings   = str(Config.get('Database','raise_on_warnings'))
+mysql_user = Config.get('Database', 'mysql_user')
+mysql_password = Config.get('Database', 'mysql_password')
+mysql_host = Config.get('Database', 'mysql_host')
+mysql_database = Config.get('Database', 'mysql_database')
+raise_on_warnings = str(Config.get('Database', 'raise_on_warnings'))
 
-if (raise_on_warnings == "True"): raise_on_warnings = True
-else: raise_on_warnings = False
+if (raise_on_warnings == "True"):
+    raise_on_warnings = True
+else:
+    raise_on_warnings = False
 
 config = {
-	'user': mysql_user,
-	'password': mysql_password,
-	'host': mysql_host,
-	'database': mysql_database,
-	'raise_on_warnings': raise_on_warnings,
+    'user': mysql_user,
+    'password': mysql_password,
+    'host': mysql_host,
+    'database': mysql_database,
+    'raise_on_warnings': raise_on_warnings,
 }
 
+
 class VMFunc:
+    def __init__(self, data):
+
+        Data = data.split(',')
+        self.Auth = Data[0]
+        self.id = int(Data[1])
+        Command = Data[2]
+
+        try:
+            createDisk = Data[3]
+        except:
+            createDisk = "no"
+
+        try:
+            Snapshot = Data[3]
+        except:
+            Snapshot = ""
+
+        self.command = Command
+        self.createDisk = createDisk
+        self.snapShot = Snapshot
+
+        self.FreeBSD = 1
+        self.Ubuntu = 2
+        self.Centos = 3
+        self.Win10 = 4
+
+
+        self.log = ''
+
+    def checkSecurity(self):
+
+        if (PassString == self.Auth):
+            return "Pass"
+        else:
+            return "Fail"
+
+    def executeCommand(self):
+
+        if (self.checkSecurity() == "Pass"):
+
+            if (self.getCommand() == "start"):
+                self.status = self.start(self.getID())
+            elif (self.getCommand() == "stop"):
+                self.status = self.stop(self.getID())
+            elif (self.getCommand() == "createvps"):
+                self.status = self.createvps(self.getID())
+            elif (self.getCommand() == "createdisk"):
+                self.status = self.createDiskImg(self.getID())
+            elif (self.getCommand() == "deletedisk"):
+                self.status = self.deleteDisk(self.getID())
+            elif (self.getCommand() == "delete"):
+                self.status = self.delete(self.getID())
+            elif (self.getCommand() == "restartConsole"):
+                self.status = self.restartConsole(self.getID())
+            elif (self.getCommand() == "status"):
+                self.status = self.checkStatus(self.getID())
+            elif (self.getCommand() == "updatevps"):
+                self.status = self.updateVPS(self.getID())
+            elif (self.getCommand() == "takeSnapshot"):
+                self.status = self.takeSnapshot(self.getID(), self.snapShot)
+            elif (self.getCommand() == "listSnapshot"):
+                self.status = self.listSnapshot(self.getID())
+            elif (self.getCommand() == "restoreSnapshot"):
+                self.status = self.restoreSnapshot(self.getID(), self.snapShot)
+            elif (self.getCommand() == "removeSnapshot"):
+                self.status = self.removeSnapshot(self.getID(), self.snapShot)
+            elif (self.getCommand() == "netStatus"):
+                self.status = self.getNetStatus(self.getID())
+            elif (self.getCommand() == "netStop"):
+                self.status = self.stopNetwork(self.getID())
+            elif (self.getCommand() == "netStart"):
+                self.status = self.startNetwork(self.getID())
 
-	def __init__(self,data):
+        else:
+            self.status = "Connection Failed"
 
-		Data 	 	= data.split(',')
-		self.Auth	= Data[0]
-		self.id 	= int(Data[1])
-		Command 	= Data[2]
+        return self.status
 
-		try: createDisk = Data[3]
-		except: createDisk = "no"
+    def getStatus(self):
+        return (self.status)
 
-		try: Snapshot = Data[3]
-		except: Snapshot = ""
+    def getNetStatus(self, id):
+        output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
 
-		self.command = Command
-		self.createDisk = createDisk
-		self.snapShot = Snapshot
+        if (output == ""):
+            output = "DOWN"
+        else:
+            output = "UP"
 
-		self.log = ''
+        return output
 
-	def checkSecurity(self):
+    def stopNetwork(self, id):
+        output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' down')
 
-		if (PassString == self.Auth): return "Pass"
-		else: return "Fail"
+        return output
 
-	def executeCommand(self):
+    def startNetwork(self, id):
+        output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' up')
 
-		if (self.checkSecurity() == "Pass"):
+        return output
 
-			if   (self.getCommand() == "start"): self.status = self.start(self.getID())
-			elif (self.getCommand() == "stop"): self.status = self.stop(self.getID())
-			elif (self.getCommand() == "createvps"): self.status = self.createvps(self.getID())
-			elif (self.getCommand() == "createdisk"): self.status = self.createDiskImg(self.getID())
-			elif (self.getCommand() == "deletedisk"): self.status = self.deleteDisk(self.getID())
-			elif (self.getCommand() == "delete"): self.status = self.delete(self.getID())
-			elif (self.getCommand() == "restartConsole"): self.status = self.restartConsole(self.getID())
-			elif (self.getCommand() == "status"): self.status = self.checkStatus(self.getID())
-			elif (self.getCommand() == "updatevps"): self.status = self.updateVPS(self.getID())
-			elif (self.getCommand() == "takeSnapshot"): self.status = self.takeSnapshot(self.getID(), self.snapShot)
-			elif (self.getCommand() == "listSnapshot"): self.status = self.listSnapshot(self.getID())
-			elif (self.getCommand() == "restoreSnapshot"): self.status = self.restoreSnapshot(self.getID(), self.snapShot)
-			elif (self.getCommand() == "removeSnapshot"): self.status = self.removeSnapshot(self.getID(), self.snapShot)
-			elif (self.getCommand() == "netStatus"): self.status = self.getNetStatus(self.getID())
-			elif (self.getCommand() == "netStop"): self.status = self.stopNetwork(self.getID())
-			elif (self.getCommand() == "netStart"): self.status = self.startNetwork(self.getID())
+    def getCommand(self):
+        return self.command
 
-		else:
-			self.status = "Connection Failed"
+    def getID(self):
+        return self.id
 
-		return self.status
+    def logentry(self, data):
 
-	def getStatus(self):
-		return (self.status)
+        try:
+            f = open(LogFile, 'a')
+            f.write(data)
+            f.close()
+        except:
+            return "Error with ".format(LogFile)
 
-	def getNetStatus(self,id):
-		vps = modules.database.DB_VPS()
-		devices = vps.getDevices(id)
+    def execbhyve(self, command, ID):
+        self.command = command
+        self.id = ID
 
-		output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
+        pid = os.fork()
 
-		if (output == ""): output = "DOWN"
-		else: output = "UP"
+        if (pid == 0):
+            self.id = RootPath + self.id
+            args = ("-c", self.command, self.id)
 
-		return output
+            proc = Popen(['/bin/sh', '-c', self.command, '999'],
+                         cwd=self.id,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,
+                         close_fds=True)
 
-	def stopNetwork(self,id):
-		output,error = self.execcmd(IFConfig + ' tap' + format(id) + ' down')
+            os._exit(0)
 
-		return output
+    def execcmd(self, cmd):
+        proc = subprocess.Popen(['/bin/sh', '-c', cmd],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                close_fds=True)
 
-	def startNetwork(self,id):
-		output,error = self.execcmd(IFConfig + ' tap' + format(id) + ' up')
+        output, error = proc.communicate()
 
-		return output
+        return (output, error)
 
+    def execcmdFork(self, cmd):
+        pid = os.fork()
 
-	def getCommand(self):
-		return self.command
+        if (pid == 0):
 
-	def getID(self):
-		return self.id
+            proc = subprocess.Popen(['/bin/sh', '-c', cmd],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
 
-	def logentry(self,data):
+            os._exit(0)
 
-		try:
-			f = open(LogFile, 'a')
-			f.write(data)
-			f.close()
-		except:
-			return "Error with ".format(LogFile)
+            output, error = proc.communicate()
 
-	def execbhyve(self,command,ID):
-		self.command = command
-		self.id = ID
+            if (error): return "An error occured"
 
-		pid = os.fork()
+    def takeSnapshot(self, id, snapshot):
 
-		if (pid == 0):
+        try:
+            if (snapshot == ""): snapshot = str(time.time())
 
-			self.id = RootPath + self.id
-			args = ("-c",self.command,self.id)
+            self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
+            self.id = RootPath + str(id)
 
-			proc = Popen(['/bin/sh', '-c', self.command, '999'],
-			     cwd=self.id,
-			     stdout=subprocess.PIPE,
-			     stderr=subprocess.STDOUT,
-			     close_fds=True)
+            proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
 
-			os._exit(0)
+            output, error = proc.communicate()
 
-	def execcmd(self,cmd):
-		proc = subprocess.Popen(['/bin/sh', '-c', cmd],
-			 stdout=subprocess.PIPE,
-		     stderr=subprocess.STDOUT,
-		     close_fds=True)
+            if (error): return "An error occured"
+            return "Snapshot name = {}".format(snapshot)
+        except:
+            return "An error occurred"
 
-		output,error = proc.communicate()
+    def listSnapshot(self, id):
 
-		return (output,error)
+        try:
 
-	def execcmdFork(self,cmd):
-		pid = os.fork()
+            self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
 
-		if (pid == 0):
+            self.id = RootPath + str(id)
 
-			proc = subprocess.Popen(['/bin/sh', '-c', cmd],
-				 stdout=subprocess.PIPE,
-			     stderr=subprocess.STDOUT,
-			     close_fds=True)
+            proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
 
-			os._exit(0)
+            output, error = proc.communicate()
 
-			output,error = proc.communicate()
+            if (error == "success"): return (output)
+            return error
+        except:
+            return "An error occured"
 
+    def restoreSnapshot(self, id, snapshot):
 
-	def takeSnapshot(self,id,snapshot):
+        try:
+            self.command = ZFSCmd + ' rollback ' + snapshot
 
-		try:
+            # print "Command = {}".format(self.command)
 
-			if (snapshot == ""): snapshot = str(time.time())
+            proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
 
-			self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
+            output, error = proc.communicate()
 
-			#print "{}\n".format(self.command)
-			#print "Snapshot name = {}".format(snapshot)
+            return output
 
-			self.id = RootPath + str(id)
+        except:
+            return error
 
-			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-				 stdout=subprocess.PIPE,
-			     stderr=subprocess.STDOUT,
-			     close_fds=True)
+    def removeSnapshot(self, id, snapshot):
 
-			output,error = proc.communicate()
+        self.command = ZFSCmd + ' destroy ' + snapshot
 
-			#return "Command successful"
-			return "Snapshot name = {}".format(snapshot)
-		except:
-			return "An error occurred"
+        # print "Command = {}".format(self.command)
 
-	def listSnapshot(self,id):
+        proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                close_fds=True)
 
-		try:
+        return "Snapshot Removed"
 
-			self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
+    def restartConsole(self, id):
+        stopconsole = "sh " + RootPath + "/" + str(id) + "/stopconsole.sh"
+        startconsole = "sh " + RootPath + "/" + str(id) + "/startconsole.sh"
 
-			#print "{}\n".format(self.command)
+        output = subprocess.Popen(['/bin/sh', '-c', stopconsole], stdout=subprocess.PIPE)
 
-			self.id = RootPath + str(id)
+        out, err = output.communicate()
 
-			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-				 stdout=subprocess.PIPE,
-			     stderr=subprocess.STDOUT,
-			     close_fds=True)
+        pid = out.split()
 
+        if (len(pid) > 1):
+            term = "kill -TERM " + str(pid[2])
+            output2 = subprocess.Popen(['/bin/sh', '-c', term], stdout=subprocess.PIPE)
 
+        output3 = subprocess.Popen(['/bin/sh', '-c', startconsole], stdout=subprocess.PIPE)
 
-			output,error = proc.communicate()
+        return "Terminal Restarted\n"
 
-			return output
-		except:
-			return "An error occured"
+    def checkStatus(self, vps_id):
 
-	def restoreSnapshot(self,id,snapshot):
+        self.id = vps_id
 
-		try:
-			self.command = ZFSCmd + ' rollback ' + snapshot
+        VPS_Conn = database.DB_VPS()
+        VPS = VPS_Conn.getVPS(self.id)
 
-			#print "Command = {}".format(self.command)
+        vps_id = str(VPS[0])
+        vps_name = VPS[1]
+        vps_startscript = VPS[5]
 
-			proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-				 stdout=subprocess.PIPE,
-			     stderr=subprocess.STDOUT,
-			     close_fds=True)
+        if (vps_startscript == ""): vps_name = str(self.id)
 
-			output,error = proc.communicate()
+        # print "{}{}/installing.txt".format(RootPath,vps_id)
 
-			return output
+        if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
+            return "Installing"
 
-		except:
-			return error
+        if (os.path.exists("/dev/vmm/" + str(vps_id))):
+            return "Running"
+        else:
+            return "Stopped"
 
-	def removeSnapshot(self,id,snapshot):
+    def start(self, id):
 
-		self.command = ZFSCmd + ' destroy ' + snapshot
+        VPS_DB = database.DB_VPS()
+        VPS = VPS_DB.getVPS(id)
 
-		#print "Command = {}".format(self.command)
+        self.execbhyve(VPS_DB.startCommand(RootPath), str(id))
 
-		proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-			 stdout=subprocess.PIPE,
-		     stderr=subprocess.STDOUT,
-		     close_fds=True)
+        return "Started VPS {}\n".format(id)
 
+    def stop(self, id):
 
-		return "Snapshot Removed"
+        VPS_DB = database.DB_VPS()
+        VPS = VPS_DB.getVPS(id)
 
+        # VPS_Con = modules.vps.VMFunc()
+        self.execbhyve(VPS_DB.stopCommand(RootPath), str(id))
+        self.execbhyve(VPS_DB.stopConsole(RootPath), str(id))
 
+        return "Stopped VPS {}\n".format(id)
 
-	def restartConsole(self,id):
-		stopconsole = "sh " + RootPath + "/" + str(id) + "/stopconsole.sh"
-		startconsole = "sh " + RootPath + "/" + str(id) + "/startconsole.sh"
+    def delete(self, id):
+        PathOrig = RootPath + str(id)
+        PathDest = RootPath + "deleted/" + str(id)
 
-		output = subprocess.Popen(['/bin/sh', '-c', stopconsole], stdout=subprocess.PIPE)
+        if (ZFSEnable == 1):
+            cmd = ZFSCmd + " destroy " + ZFSRoot + "/" + str(id)
 
-		out, err = output.communicate()
+            output, error = self.execcmd(cmd)
 
-		pid = out.split()
+            return error
 
-		if (len(pid) > 1):
-			term = "kill -TERM " + str(pid[2])
-			output2 = subprocess.Popen(['/bin/sh', '-c', term], stdout=subprocess.PIPE)
+        # return "ZFS Destroy CMD = {}\n".format(cmd)
+        else:
+            if os.path.exists(PathOrig):
+                return os.renames(PathOrig, PathDest)
+            else:
+                return "Disk doesn't exist"
 
-		output3 = subprocess.Popen(['/bin/sh', '-c', startconsole], stdout=subprocess.PIPE)
+            # status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
 
-		return "Terminal Restarted\n"
+            # return status
 
-	def checkStatus(self,vps_id):
 
 
-		self.id = vps_id
+    def genBhyveCommands(self, RAM, BootDrive, Name, NetInt, Drives, Console, ID, Path):
+        BhyveLoad = "/usr/sbin/bhyveload -m {} -d {} {}\n".format(RAM, BootDrive, ID)
+        Bhyve = "/usr/sbin/bhyve -A -H -P -s 0:0,hostbridge -s 1:0,lpc {} {} -l com1,/dev/nmdm{}A -c 4 -m {} {} &\n".format(
+            NetInt, Drives, Console, RAM, ID)
+        ShellInABox = "/usr/local/bin/shellinaboxd -t --service='/shell':'root':'wheel':'/root':'/usr/bin/cu -l /dev/nmdm{}B' --port={}{}".format(
+            Console, ShellInABoxPref, ID)
+        GrubBhyve = "/usr/local/sbin/grub-bhyve -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path, RAM, ID)
+        GrubBhyve2 = "/usr/local/sbin/grub-bhyve -d /grub2 -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path, RAM,
+                                                                                                           ID)
 
+        return (BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox)
 
-		VPS_Conn = database.DB_VPS()
-		VPS = VPS_Conn.getVPS(self.id)
+    def genDevices(self, Devices, Interface):
 
-		vps_id          = str(VPS[0])
-		vps_name        = VPS[1]
-		vps_startscript = VPS[5]
+        Count = 0
+        Drives = ''
+        NetInt = ''
+        Interface = 2
 
-		if (vps_startscript == ""): vps_name = str(self.id)
+        AddTaps = ''
+        DelTaps = ''
+        AddBridges = ''
 
-		#print "{}{}/installing.txt".format(RootPath,vps_id)
+        self.interface = Interface
 
-		if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
-			return "Installing"
+        for Device in Devices:
+            NetInt = "{} -s {}:0,virtio-net,tap{}".format(NetInt, self.interface, Device[1])
+            AddTaps = "{}/sbin/ifconfig tap{} create\n".format(AddTaps, Device[1])
+            DelTaps = "{}/sbin/ifconfig tap{} destroy\n".format(DelTaps, Device[1])
+            AddBridges = "{}/sbin/ifconfig bridge{} addm tap{}\n".format(AddBridges, Device[3], Device[1])
 
+            self.interface += 1
+            Count += 1
 
-		if (os.path.exists("/dev/vmm/" + str(vps_id))):
-			return "Running"
-		else:
-			return "Stopped"
+        return (NetInt, AddTaps, DelTaps, AddBridges, self.interface)
 
-	def start(self,id):
+    def genDisks(self, Disks, Interface, ID, Path):
 
-		VPS_DB = modules.database.DB_VPS()
-		VPS = VPS_DB.getVPS(id)
+        Count = 0
+        self.interface = Interface
 
-		self.execbhyve(VPS_DB.startCommand(RootPath),str(id))
+        Drives = ''
+        BootDrive = ''
+        LinuxBoot = ''
 
-		return "Started VPS {}\n".format(id)
+        if (Path == ""): Path = RootPath + "/" + str(ID)
 
-	def stop(self,id):
+        for Disk in Disks:
 
-		VPS_DB = modules.database.DB_VPS()
-		VPS = VPS_DB.getVPS(id)
+            if (Disk[2] == ""):
+                DiskDrive = Disk[0]
+            else:
+                DiskDrive = Disk[2]
 
-		#VPS_Con = modules.vps.VMFunc()
-		self.execbhyve(VPS_DB.stopCommand(RootPath),str(id))
-		self.execbhyve(VPS_DB.stopConsole(RootPath),str(id))
+            if (Count == 0):
+                BootDrive = "{}/{}".format(Path, DiskDrive)
+                LinuxBoot = "{}".format(DiskDrive)
 
-		return "Stopped VPS {}\n".format(id)
+            Drives = "{} -s {}:0,virtio-blk,{}/{}".format(Drives, self.interface, Path, DiskDrive)
+            Count += 1
+            self.interface += 1
 
-	def delete(self,id):
-		PathOrig = RootPath + str(id)
-		PathDest = RootPath + "deleted/" + str(id)
+        return (BootDrive, Drives, self.interface, LinuxBoot)
 
-		if (ZFSEnable == 1):
-			cmd = ZFSCmd + " destroy " + ZFSRoot + "/" + str(id)
+    def createvps(self, id):
 
-			output,error = self.execcmd(cmd)
+        vps = database.DB_VPS()
+        vps.getVPS(id)
 
-			return error
+        ID = vps.getID()
+        Name = vps.getName()
+        RAM = vps.getRAM()
+        Console = vps.getConsole()
+        Image = vps.getImage()
+        Path = vps.getPath()
+        StartScript = vps.getStartScript()
+        StopScript = vps.getStopScript()
+        Disks = vps.getDisks(id)
+        Devices = vps.getDevices(id)
 
-			#return "ZFS Destroy CMD = {}\n".format(cmd)
-		else:
-			if os.path.exists(PathOrig):
-				return os.renames(PathOrig,PathDest)
-			else:
-				return "Disk doesn't exist"
+        if (Path == ""): Path = RootPath + "/" + str(ID)
 
-		#status = "Move From: {}\nTo: {}\n".format(PathOrig,PathDest)
+        Interface = 2
 
-		#return status
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
 
-	def generateScript(self,file,data):
+        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, Path)
 
-		self.file = file
-		self.data = data
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
+                                                                                     Drives, Console, ID, Path)
 
-		try:
-			f = open(self.file, 'w')
-			f.write("#!/bin/sh\n")
-			f.write(self.data)
-			f.close()
-		except:
-			return "Error occurred generating script".format(self.file)
+        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref, ID)
+        Network = "/sbin/ifconfig "
 
-	def genBhyveCommands(self,RAM,BootDrive,Name,NetInt,Drives,Console,ID,Path):
-		BhyveLoad       = "/usr/sbin/bhyveload -m {} -d {} {}\n".format(RAM,BootDrive,ID)
-		Bhyve           = "/usr/sbin/bhyve -A -H -P -s 0:0,hostbridge -s 1:0,lpc {} {} -l com1,/dev/nmdm{}A -c 4 -m {} {} &\n".format(NetInt,Drives,Console,RAM,ID)
-		ShellInABox     = "/usr/local/bin/shellinaboxd -t --service='/shell':'root':'wheel':'/root':'/usr/bin/cu -l /dev/nmdm{}B' --port={}{}".format(Console,ShellInABoxPref,ID)
-		GrubBhyve       = "/usr/local/sbin/grub-bhyve -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path,RAM,ID)
-		GrubBhyve2      = "/usr/local/sbin/grub-bhyve -d /grub2 -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path,RAM,ID)
+        DstImg = Path + "/" + "disk.img"
 
-		return (BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox)
+        # Note: find a better way!!!
 
-	def genDevices(self,Devices,Interface):
+        if (Image == self.FreeBSD):
+            SrcImg = SrcImgFreeBSD
+        elif (Image == self.Ubuntu):
+            SrcImg = SrcImgUbuntu
+        elif (Image == self.Centos):
+            SrcImg = SrcImgCentos
+        elif (Image == self.Win10):
+            SrcImg = SrcImgWin10
 
-		Count = 0
-		Drives = ''
-		NetInt = ''
-		Interface = 2
+        if not os.path.exists(Path):
+            if (ZFSEnable == 1):
+                cmd = ZFSCmd + " create " + ZFSRoot + "/" + str(ID)
 
-		AddTaps = ''
-		DelTaps = ''
-		AddBridges = ''
+                # print "ZFS Command = {}\n".format(cmd)
+                self.execcmd(cmd)
+            else:
+                os.makedirs(Path)
 
-		self.interface = Interface
+        if (self.createDisk == "on"):
+            # print "Copying file... {} to {}".format(SrcImg,BootDrive)
 
-		for Device in Devices:
-			NetInt      = "{} -s {}:0,virtio-net,tap{}".format(NetInt,self.interface,Device[1])
-			AddTaps     = "{}/sbin/ifconfig tap{} create\n".format(AddTaps,Device[1])
-			DelTaps     = "{}/sbin/ifconfig tap{} destroy\n".format(DelTaps,Device[1])
-			AddBridges  = "{}/sbin/ifconfig bridge{} addm tap{}\n".format(AddBridges,Device[3],Device[1])
+            cmd = Touch + " " + RootPath + str(
+                ID) + "/installing.txt" + " && " + CP + " " + SrcImg + " " + BootDrive + " && " + RM + " " + RootPath + str(
+                ID) + "/installing.txt"
 
-			self.interface += 1
-			Count += 1
+            # print "{}\n".format(cmd)
 
+            self.execcmdFork(cmd)
 
-		return (NetInt, AddTaps, DelTaps, AddBridges, self.interface)
+            StartScript = "{}/start.sh".format(Path)
+            StopScript = "{}/stop.sh".format(Path)
+            StartConsole = "{}/startconsole.sh".format(Path)
+            StopConsole = "{}/stopconsole.sh".format(Path)
+            DeviceMapScript = "{}/device.map".format(Path)
 
-	def genDisks(self,Disks,Interface,ID,Path):
+            # FreeBSD
+            if (Image == 1):
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
+            elif (Image == 2):
+                DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
+                self.generateScript(DeviceMapScript, DevicemapData)
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
+            elif (Image == 3):
+                DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
+                self.generateScript(DeviceMapScript, DevicemapData)
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
-		Count = 0
-		self.interface = Interface
+            StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl, ID)
+            StartConsoleScript = ShellInABox
+            StopConsoleScript = StopShellInABox
 
-		Drives = ''
-		BootDrive = ''
-		LinuxBoot = ''
+            self.generateScript(StartScript, StartScriptData)
+            self.generateScript(StopScript, StopScriptData)
+            self.generateScript(StartConsole, StartConsoleScript)
+            self.generateScript(StopConsole, StopConsoleScript)
 
-		if (Path == ""): Path = RootPath + "/" + str(ID)
+        return "Created VPS: {}\n".format(id)
 
-		for Disk in Disks:
+    def generateScript(self, file, data):
 
-			if (Disk[2] == ""): DiskDrive = Disk[0]
-			else: DiskDrive = Disk[2]
+        self.file = file
+        self.data = data
 
-			if (Count == 0):
-				BootDrive = "{}/{}".format(Path,DiskDrive)
-				LinuxBoot = "{}".format(DiskDrive)
+        try:
+            f = open(self.file, 'w')
+            f.write("#!/bin/sh\n")
+            f.write(self.data)
+            f.close()
+        except:
+            return "Error occurred generating script ".format(self.file)
 
-			Drives = "{} -s {}:0,virtio-blk,{}/{}".format(Drives,self.interface,Path,DiskDrive)
-			Count += 1
-			self.interface += 1
+    def updateVPS(self, vps_id):
 
-		return (BootDrive,Drives,self.interface,LinuxBoot)
+        vps = database.DB_VPS()
+        vps.getVPS(vps_id)
 
-	def createvps(self,id):
+        ID = vps.getID()
+        Name = vps.getName()
+        RAM = vps.getRAM()
+        Console = vps.getConsole()
+        Image = vps.getImage()
+        Path = vps.getPath()
+        StartScript = vps.getStartScript()
+        StopScript = vps.getStopScript()
 
-		vps = modules.database.DB_VPS()
-		vps.getVPS(id)
+        Disks = vps.getDisks(vps_id)
 
-		ID 			= vps.getID()
-		Name 		= vps.getName()
-		RAM 		= vps.getRAM()
-		Console 	= vps.getConsole()
-		Image 		= vps.getImage()
-		Path 		= vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript 	= vps.getStopScript()
-		Disks 		= vps.getDisks(id)
-		Devices 	= vps.getDevices(id)
+        if (Path == ""):
+            VPSPath = RootPath + str(vps_id)
+        else:
+            VPSPath = Path
 
-		if (Path == ""): Path = RootPath + "/" + str(ID)
+        # print "VPS Path: {}".format(VPSPath)
 
-		Interface = 2
+        Devices = vps.getDevices(vps_id)
+        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref, ID)
 
-		NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
+        Interface = 2
 
-		BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID,Path)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, VPSPath)
 
-		BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID,Path)
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
+                                                                                     Drives, Console, ID, VPSPath)
 
-		StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref,ID)
-		Network = "/sbin/ifconfig "
+        StartScript = "{}/start.sh".format(VPSPath)
+        StopScript = "{}/stop.sh".format(VPSPath)
+        DeviceMapScript = "{}/device.map".format(VPSPath)
+        StartConsole = "{}/startconsole.sh".format(VPSPath)
+        StopConsole = "{}/stopconsole.sh".format(VPSPath)
 
-		DstImg = Path + "/" + "disk.img"
+        StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl, ID)
 
-		if (Image == 1): SrcImg = SrcImgFreeBSD
-		elif (Image == 2): SrcImg = SrcImgUbuntu
-		elif (Image == 3): SrcImg = SrcImgCentos
+        # FreeBSD
+        if (Image == 1):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
-		if not os.path.exists(Path):
-			if (ZFSEnable == 1):
-				cmd = ZFSCmd + " create " + ZFSRoot + "/" + str(ID)
+        # Ubuntu
+        elif (Image == 2):
+            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath, LinuxBoot)
 
-				#print "ZFS Command = {}\n".format(cmd)
-				self.execcmd(cmd)
-			else:
-				os.makedirs(Path)
+            self.generateScript(DeviceMapScript, DevicemapData)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
-		if (self.createDisk == "on"):
-			#print "Copying file... {} to {}".format(SrcImg,BootDrive)
+        # print "Linux Device - Image 2 = {}".format(DevicemapData)
 
-			cmd = Touch + " " + RootPath + str(ID) + "/installing.txt" + " && " + CP + " " + SrcImg + " " + BootDrive + " && " + RM + " " + RootPath + str(ID) + "/installing.txt"
+        # Centos
+        elif (Image == 3):
 
-			#print "{}\n".format(cmd)
+            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath, LinuxBoot)
 
-			self.execcmdFork(cmd)
+            self.generateScript(DeviceMapScript, DevicemapData)
 
-			StartScript = "{}/start.sh".format(Path)
-			StopScript = "{}/stop.sh".format(Path)
-			StartConsole = "{}/startconsole.sh".format(Path)
-			StopConsole = "{}/stopconsole.sh".format(Path)
-			DeviceMapScript = "{}/device.map".format(Path)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
-			# FreeBSD
-			if (Image == 1):
-				StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
+        # print "Linux Device - Image 3 = {}".format(StartScriptData)
+        else:
+            return "Error: no image specified"
 
-			elif (Image == 2):
-				DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path,LinuxBoot)
+        StartConsoleScript = ShellInABox
+        StopConsoleScript = StopShellInABox
 
-				self.generateScript(DeviceMapScript,DevicemapData)
+        self.generateScript(StartConsole, StartConsoleScript)
+        self.generateScript(StopConsole, StopConsoleScript)
 
-				StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
-				#print "Linux Device - Image 2 = {}".format(DevicemapData)
+        self.generateScript(StartScript, StartScriptData)
+        self.generateScript(StopScript, StopScriptData)
 
-			elif (Image == 3):
-				DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path,LinuxBoot)
+        return "VPS {} Update\n".format(vps_id)
 
-				self.generateScript(DeviceMapScript,DevicemapData)
+    def createDiskImg(self, id):
 
-				StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
-				#print "Linux Device - Image 3 = {}".format(DevicemapData)
+        vps = database.DB_VPS()
+        # return vps.getImage()
 
-
-			StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl,ID)
-			StartConsoleScript = ShellInABox
-			StopConsoleScript = StopShellInABox
-
-			self.generateScript(StartScript,StartScriptData)
-			self.generateScript(StopScript,StopScriptData)
-			self.generateScript(StartConsole,StartConsoleScript)
-			self.generateScript(StopConsole,StopConsoleScript)
-
-		return "Created VPS: {}\n".format(id)
-
-
-	def updateVPS(self,vps_id):
-
-		vps = modules.database.DB_VPS()
-		vps.getVPS(vps_id)
-
-		ID = vps.getID()
-		Name = vps.getName()
-		RAM = vps.getRAM()
-		Console = vps.getConsole()
-		Image = vps.getImage()
-		Path = vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript = vps.getStopScript()
-
-		Disks = vps.getDisks(vps_id)
-
-		if (Path == ""): VPSPath = RootPath + str(vps_id)
-		else: VPSPath = Path
-
-		#print "VPS Path: {}".format(VPSPath)
-
-		Devices = vps.getDevices(vps_id)
-		StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref,ID)
-
-
-		Interface = 2
-
-		NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
-		BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID,VPSPath)
-
-		BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID,VPSPath)
-
-		StartScript = "{}/start.sh".format(VPSPath)
-		StopScript = "{}/stop.sh".format(VPSPath)
-		DeviceMapScript = "{}/device.map".format(VPSPath)
-		StartConsole = "{}/startconsole.sh".format(VPSPath)
-		StopConsole = "{}/stopconsole.sh".format(VPSPath)
-
-		StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl,ID)
-
-		# FreeBSD
-		if (Image == 1):
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
-
-		# Ubuntu
-		elif (Image == 2):
-			DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath,LinuxBoot)
-
-			self.generateScript(DeviceMapScript,DevicemapData)
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
-
-			#print "Linux Device - Image 2 = {}".format(DevicemapData)
-
-		# Centos
-		elif (Image == 3):
-
-			DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath,LinuxBoot)
-
-			self.generateScript(DeviceMapScript,DevicemapData)
-
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
-
-			#print "Linux Device - Image 3 = {}".format(StartScriptData)
-		else:
-			return "Error: no image specified"
-
-		StartConsoleScript = ShellInABox
-		StopConsoleScript = StopShellInABox
-
-		self.generateScript(StartConsole,StartConsoleScript)
-		self.generateScript(StopConsole,StopConsoleScript)
-
-		self.generateScript(StartScript,StartScriptData)
-		self.generateScript(StopScript,StopScriptData)
-
-		return "VPS {} Update\n".format(vps_id)
-
-	def createDiskImg(self,id):
-
-		vps = modules.database.DB_VPS()
-		#return vps.getImage()
-
-		'''cnx = mysql.connector.connect(**config)
+        '''cnx = mysql.connector.connect(**config)
 		cursor = cnx.cursor()
 		cursor.execute("select size,vps_id from disk where id=%s",(id,))
 		Disk = cursor.fetchone()'''
 
-		Disk = vps.getDisk(id)
+        Disk = vps.getDisk(id)
 
-		vps_id = Disk[1]
-		size = Disk[0]
-		Interface = 2
+        vps_id = Disk[1]
+        size = Disk[0]
+        Interface = 2
 
-		vps.getVPS(vps_id)
+        vps.getVPS(vps_id)
 
-		ID 			= vps.getID()
-		Name 		= vps.getName()
-		RAM 		= vps.getRAM()
-		Console 	= vps.getConsole()
-		Image 		= vps.getImage()
-		Path 		= vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript 	= vps.getStopScript()
+        ID = vps.getID()
+        Name = vps.getName()
+        RAM = vps.getRAM()
+        Console = vps.getConsole()
+        Image = vps.getImage()
+        Path = vps.getPath()
+        StartScript = vps.getStartScript()
+        StopScript = vps.getStopScript()
 
-		#return "Create Disk for VPS 1\n"
+        # return "Create Disk for VPS 1\n"
 
-		Disks = vps.getDisks(vps_id)
+        Disks = vps.getDisks(vps_id)
 
-		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
-		else: VPSPath = Path
+        if (Path == ""):
+            VPSPath = RootPath + "/" + str(vps_id)
+        else:
+            VPSPath = Path
 
-		if (Image == 1): SrcImg = SrcImgFreeBSD
-		elif (Image == 2): SrcImg = SrcImgUbuntu
-		elif (Image == 3): SrcImg = SrcImgCentos
+        if (Image == 1):
+            SrcImg = SrcImgFreeBSD
+        elif (Image == 2):
+            SrcImg = SrcImgUbuntu
+        elif (Image == 3):
+            SrcImg = SrcImgCentos
 
-		Devices = vps.getDevices(vps_id)
+        Devices = vps.getDevices(vps_id)
 
-		NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
-		BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID,Path)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, Path)
 
-		create_disk = "truncate -s {}GB {}/{}/{}".format(size,RootPath,vps_id,id)
-		output = subprocess.Popen(['/bin/sh', '-c', create_disk], stdout=subprocess.PIPE)
+        create_disk = "truncate -s {}GB {}/{}/{}".format(size, RootPath, vps_id, id)
+        output = subprocess.Popen(['/bin/sh', '-c', create_disk], stdout=subprocess.PIPE)
 
-		BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID,VPSPath)
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
+                                                                                     Drives, Console, ID, VPSPath)
 
-		StartScript = "{}{}/start.sh".format(RootPath,vps_id)
+        StartScript = "{}{}/start.sh".format(RootPath, vps_id)
 
+        # FreeBSD
+        if (Image == 1):
+            # return "Create Disk for VPS 1\n"
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
-		# FreeBSD
-		if (Image == 1):
-			#return "Create Disk for VPS 1\n"
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
+        elif (Image == 2):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
-		elif (Image == 2):
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
+        elif (Image == 3):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
-		elif (Image == 3):
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
+        self.generateScript(StartScript, StartScriptData)
 
-		self.generateScript(StartScript,StartScriptData)
+        return "Create Disk for VPS {}\n".format(vps_id)
 
-		return "Create Disk for VPS {}\n".format(vps_id)
+    def deleteDisk(self, id):
 
-	def deleteDisk(self,id):
+        vps = database.DB_VPS()
 
-		vps = modules.database.DB_VPS()
+        vps_id = vps.getDiskVPSID(id)
 
-		vps_id = vps.getDiskVPSID(id)
+        vps.getVPS(vps_id)
 
+        ID = vps.getID()
+        Name = vps.getName()
+        RAM = vps.getRAM()
+        Console = vps.getConsole()
+        Image = vps.getImage()
+        Path = vps.getPath()
+        StartScript = vps.getStartScript()
+        StopScript = vps.getStopScript()
 
-		vps.getVPS(vps_id)
+        if (Path == ""):
+            VPSPath = RootPath + "/" + str(vps_id)
+        else:
+            VPSPath = Path
 
-		ID = vps.getID()
-		Name = vps.getName()
-		RAM = vps.getRAM()
-		Console = vps.getConsole()
-		Image = vps.getImage()
-		Path = vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript = vps.getStopScript()
+        if (Image == 1):
+            SrcImg = SrcImgFreeBSD
+        elif (Image == 2):
+            SrcImg = SrcImgUbuntu
+        elif (Image == 3):
+            SrcImg = SrcImgCentos
+        else:
+            return "Error: no image found"
 
+        delete_disk = "rm {}/{}".format(VPSPath, id)
 
-		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
-		else: VPSPath = Path
+        try:
+            process = subprocess.Popen(['/bin/sh', '-c', delete_disk], stdout=subprocess.PIPE)
+            output, err = process.communicate()
+        except:
+            # return process.returncode
+            return "Delete disk failed"
 
-		if (Image == 1): SrcImg = SrcImgFreeBSD
-		elif (Image == 2): SrcImg = SrcImgUbuntu
-		elif (Image == 3): SrcImg = SrcImgCentos
-		else:
-			return "Error: no image found"
+        vps.deleteDisk(id)
 
-		delete_disk = "rm {}/{}".format(VPSPath,id)
+        ####
+        #
+        # Regenerate Scripts
+        #
+        ####
 
-		try:
-			process = subprocess.Popen(['/bin/sh', '-c', delete_disk], stdout=subprocess.PIPE)
-			output,err = process.communicate()
-		except:
-			#return process.returncode
-			return "Delete disk failed"
+        Disks = vps.getDisks(vps_id)
+        Devices = vps.getDevices(vps_id)
 
+        Interface = 2
 
-		vps.deleteDisk(id)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, VPSPath)
 
-		####
-		#
-		# Regenerate Scripts
-		#
-		####
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
+                                                                                     Drives, Console, ID, VPSPath)
 
-		Disks = vps.getDisks(vps_id)
-		Devices = vps.getDevices(vps_id)
+        StartScript = "{}/start.sh".format(VPSPath)
 
-		Interface = 2
+        # FreeBSD
+        if (Image == 1):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
-		NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
-		BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID,VPSPath)
+        elif (Image == 2):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
-		BhyveLoad,GrubBhyve,GrubBhyve2,Bhyve,ShellInABox = self.genBhyveCommands(RAM,BootDrive,Name,NetInt,Drives,Console,ID,VPSPath)
+        elif (Image == 3):
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
-		StartScript = "{}/start.sh".format(VPSPath)
+        StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
+        if (self.generateScript(StartScript, StartScriptData)):
+            return "An error occurred generating script"
 
-		# FreeBSD
-		if (Image == 1):
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
-
-		elif (Image == 2):
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve,Bhyve,AddBridges,ShellInABox)
-
-		elif (Image == 3):
-			StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,GrubBhyve2,Bhyve,AddBridges,ShellInABox)
-
-
-
-
-		StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps,BhyveLoad,Bhyve,AddBridges,ShellInABox)
-
-		if (self.generateScript(StartScript,StartScriptData)):
-			return "An error occurred generating script"
-
-		return "Disk {} Delete\n".format(id)
+        return "Disk {} Delete\n".format(id)
