@@ -2,7 +2,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 import mysql.connector
-import database
+import modules.database
 
 config = {
   'user': 'ah_vps',

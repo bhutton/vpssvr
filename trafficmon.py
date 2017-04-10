@@ -7,7 +7,7 @@ Use Netstat to monitor traffic
 
 import subprocess
 import mysql.connector
-import database
+import modules.database as database
 import time
 
 config = {
@@ -36,7 +36,7 @@ for interface in tunnel:
 
     print interface
 
-    command     = netstat_cmd + ' ' + args + ' ' + interface
+    command = netstat_cmd + ' ' + args + ' ' + interface
 
     proc = subprocess.Popen(['/bin/sh', '-c', command], stdout=subprocess.PIPE)
 

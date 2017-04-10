@@ -5,7 +5,7 @@ import os, subprocess
 import shutil
 import ConfigParser
 import subprocess
-import modules.database
+import modules.database as database
 import time
 
 
@@ -110,7 +110,7 @@ class VMFunc:
 		return (self.status)
 
 	def getNetStatus(self,id):
-		vps = modules.database.DB_VPS()
+		vps = database.DB_VPS()
 		devices = vps.getDevices(id)
 
 		output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
@@ -319,7 +319,7 @@ class VMFunc:
 
 	def start(self,id):
 
-		VPS_DB = modules.database.DB_VPS()
+		VPS_DB = database.DB_VPS()
 		VPS = VPS_DB.getVPS(id)
 
 		self.execbhyve(VPS_DB.startCommand(RootPath),str(id))
@@ -328,7 +328,7 @@ class VMFunc:
 
 	def stop(self,id):
 
-		VPS_DB = modules.database.DB_VPS()
+		VPS_DB = database.DB_VPS()
 		VPS = VPS_DB.getVPS(id)
 
 		#VPS_Con = modules.vps.VMFunc()
@@ -434,7 +434,7 @@ class VMFunc:
 
 	def createvps(self,id):
 
-		vps = modules.database.DB_VPS()
+		vps = database.DB_VPS()
 		vps.getVPS(id)
 
 		ID 			= vps.getID()
@@ -526,7 +526,7 @@ class VMFunc:
 
 	def updateVPS(self,vps_id):
 
-		vps = modules.database.DB_VPS()
+		vps = database.DB_VPS()
 		vps.getVPS(vps_id)
 
 		ID = vps.getID()
@@ -603,7 +603,7 @@ class VMFunc:
 
 	def createDiskImg(self,id):
 
-		vps = modules.database.DB_VPS()
+		vps = database.DB_VPS()
 		#return vps.getImage()
 
 		'''cnx = mysql.connector.connect(**config)
@@ -669,7 +669,7 @@ class VMFunc:
 
 	def deleteDisk(self,id):
 
-		vps = modules.database.DB_VPS()
+		vps = database.DB_VPS()
 
 		vps_id = vps.getDiskVPSID(id)
 
