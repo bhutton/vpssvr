@@ -654,17 +654,9 @@ class VMFunc:
 
         Disks = vps.getDisks(vps_id)
 
-        if (Path == ""):
-            VPSPath = RootPath + "/" + str(vps_id)
-        else:
-            VPSPath = Path
+        VPSPath = self.getVPSPath(Path, vps_id)
 
-        if (Image == 1):
-            SrcImg = SrcImgFreeBSD
-        elif (Image == 2):
-            SrcImg = SrcImgUbuntu
-        elif (Image == 3):
-            SrcImg = SrcImgCentos
+        self.setImagePath(Image)
 
         Devices = vps.getDevices(vps_id)
 
@@ -679,6 +671,21 @@ class VMFunc:
 
         StartScript = "{}{}/start.sh".format(RootPath, vps_id)
 
+        StartScriptData = self.getScriptData(AddBridges, AddTaps, Bhyve, BhyveLoad, GrubBhyve, GrubBhyve2, Image,
+                                             ShellInABox)
+
+        self.generateScript(StartScript, StartScriptData)
+
+        return "Create Disk for VPS {}\n".format(vps_id)
+
+    def getVPSPath(self, Path, vps_id):
+        if (Path == ""):
+            VPSPath = RootPath + "/" + str(vps_id)
+        else:
+            VPSPath = Path
+        return VPSPath
+
+    def getScriptData(self, AddBridges, AddTaps, Bhyve, BhyveLoad, GrubBhyve, GrubBhyve2, Image, ShellInABox):
         # FreeBSD
         if (Image == 1):
             # return "Create Disk for VPS 1\n"
@@ -689,10 +696,17 @@ class VMFunc:
 
         elif (Image == 3):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
+        return StartScriptData
 
-        self.generateScript(StartScript, StartScriptData)
-
-        return "Create Disk for VPS {}\n".format(vps_id)
+    def setImagePath(self, Image):
+        if (Image == 1):
+            SrcImg = SrcImgFreeBSD
+        elif (Image == 2):
+            SrcImg = SrcImgUbuntu
+        elif (Image == 3):
+            SrcImg = SrcImgCentos
+        else:
+            return "Error: no image found"
 
     def deleteDisk(self, id):
 
@@ -711,19 +725,23 @@ class VMFunc:
         StartScript = vps.getStartScript()
         StopScript = vps.getStopScript()
 
-        if (Path == ""):
-            VPSPath = RootPath + "/" + str(vps_id)
-        else:
-            VPSPath = Path
+        VPSPath = self.getVPSPath(Path, vps_id)
 
-        if (Image == 1):
+        SrcImg = self.setImagePath(Image)
+        if SrcImg == "Error: no image found": return "Error: no image found"
+
+
+
+        #print Image
+
+        '''if (Image == 1):
             SrcImg = SrcImgFreeBSD
         elif (Image == 2):
             SrcImg = SrcImgUbuntu
         elif (Image == 3):
             SrcImg = SrcImgCentos
         else:
-            return "Error: no image found"
+            return "Error: no image found"'''
 
         delete_disk = "rm {}/{}".format(VPSPath, id)
 
