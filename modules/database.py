@@ -20,10 +20,6 @@ config = {
 
 class DB_Network:
     def __init__(self):
-        self.connect_to_database(config)
-
-    def connect_to_database(self, config):
-        print "hello"
         self.cnx = mysql.connector.connect(**config)
         self.cursor = self.cnx.cursor()
 
@@ -32,7 +28,7 @@ class DB_Network:
         self.int = self.cursor.fetchall()
         return self.int
 
-    def getTrafficData(self, interface):
+    def get_traffic_data(self, interface):
         self.cursor.execute(
             "(SELECT `TotalIpkts`,`TotalOpkts`,`timestamp`,`index` FROM `traffic` where `interface`=%s ORDER BY `index` DESC LIMIT 10) ORDER BY `index` ASC",
             (interface,))
@@ -55,58 +51,50 @@ class DB_VPS:
             'raise_on_warnings': True,
         }
 
-        self.RootPath = Config.get('Global', 'RootPath')
+        self.root_path = Config.get('Global', 'RootPath')
 
         self.cnx = mysql.connector.connect(**config)
         self.cursor = self.cnx.cursor()
 
-    def getDev(self, id):
-        Get_Dev = (
+    def get_device(self, id):
+        get_device_sql_query = (
         "select interface.id,interface.device,interface.vps_id,bridge.device from interface,bridge where vps_id=%s and interface.bridge_id = bridge.id")
-        self.cursor.execute(Get_Dev, (id,))
+        self.cursor.execute(get_device_sql_query, (id,))
         self.int = self.cursor.fetchall()
 
         return self.int
 
-    # def getIntStatus(self,id):
-    #	self.cursor.execute("select interface")
-
-    def getDevices(self, id):
-        # cnx = mysql.connector.connect(**config)
-        # cursor = cnx.cursor()
-
-        # Get_Dev     = ("select interface.id,interface.device,interface.vps_id,bridge.device from interface,bridge where vps_id=%s and interface.bridge_id = bridge.id")
-
+    def get_devices(self, id):
         self.cursor.execute(
             "select interface.id,interface.device,interface.vps_id,bridge.device from interface,bridge where vps_id=%s and interface.bridge_id = bridge.id",
             (id,))
 
         return self.cursor.fetchall()
 
-    def getDiskVPSID(self, id):
+    def get_vps_id_associated_with_disk(self, id):
         self.cursor.execute("select vps_id from disk where id=%s", (id,))
         VPS = self.cursor.fetchone()
 
         return (VPS[0])
 
-    def getDisk(self, id):
+    def get_disk(self, id):
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
         cursor.execute("select size,vps_id from disk where id=%s", (id,))
         return cursor.fetchone()
 
-    def getDisks(self, id):
+    def get_disks_details_from_database(self, id):
 
         self.cursor.execute("select id,size,name from disk where vps_id=%s", (id,))
         return self.cursor.fetchall()
 
-    def deleteDisk(self, id):
+    def delete_disk_from_database(self, id):
         self.cursor.execute("delete from disk where id=%s", (id,))
         self.cnx.commit()
 
     def getVPS(self, id):
-        Get_VPS = ("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s")
-        self.cursor.execute(Get_VPS, (id,))
+        get_vps_details_sql_query = ("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s")
+        self.cursor.execute(get_vps_details_sql_query, (id,))
         self.vps = self.cursor.fetchone()
 
         self.ID = self.vps[0]
@@ -155,7 +143,7 @@ class DB_VPS:
         vps_stopscript = self.vps[7]
 
         if (vps_startscript == ""): vps_startscript = "start.sh"
-        if (vps_path == ""): vps_path = self.RootPath + "/" + vps_id
+        if (vps_path == ""): vps_path = self.root_path + "/" + vps_id
 
         print "command = " + str(vps_path) + "/" + vps_startscript
 
@@ -172,7 +160,7 @@ class DB_VPS:
         vps_stopscript = self.vps[7]
 
         if (vps_startscript == ""): vps_stopscript = "stop.sh"
-        if (vps_path == ""): vps_path = self.RootPath + "/" + vps_id
+        if (vps_path == ""): vps_path = self.root_path + "/" + vps_id
 
         return ("/bin/sh " + vps_path + "/" + vps_stopscript)
 

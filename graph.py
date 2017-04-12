@@ -29,7 +29,7 @@ cursor = cnx.cursor()
 #row = cursor.fetchall()
 
 network = database.DB_Network()
-row = network.getTrafficData(interface)
+row = network.get_traffic_data(interface)
 
 opackets = []
 ipackets = []

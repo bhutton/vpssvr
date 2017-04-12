@@ -280,8 +280,8 @@ class VMFunc:
 		Path 		= vps.getPath()
 		StartScript = vps.getStartScript()
 		StopScript 	= vps.getStopScript()
-		Disks 		= vps.getDisks(id)
-		Devices 	= vps.getDevices(id)
+		Disks 		= vps.get_disks_details_from_database(id)
+		Devices 	= vps.get_devices(id)
 
 		if (Path == ""): Path = RootPath + "/" + str(ID)
 
@@ -364,14 +364,14 @@ class VMFunc:
 		StartScript = vps.getStartScript()
 		StopScript = vps.getStopScript()
 
-		Disks = vps.getDisks(vps_id)
+		Disks = vps.get_disks_details_from_database(vps_id)
 
 		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
 		else: VPSPath = Path
 
 		print "VPS Path: {}".format(VPSPath)
 
-		Devices = vps.getDevices(vps_id)
+		Devices = vps.get_devices(vps_id)
 		StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref,ID)
 
 
@@ -449,7 +449,7 @@ class VMFunc:
 		StopScript = vps.getStopScript()
 
 
-		Disks = vps.getDisks(vps_id)
+		Disks = vps.get_disks_details_from_database(vps_id)
 
 		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)
 		else: VPSPath = Path
@@ -459,7 +459,7 @@ class VMFunc:
 		elif (Image == 3): SrcImg = SrcImgCentos
 
 
-		Devices = vps.getDevices(vps_id)
+		Devices = vps.get_devices(vps_id)
 
 		NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
 		BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks,Interface,ID,Path)
@@ -490,7 +490,7 @@ class VMFunc:
 		
 		vps = database.DB_VPS()
 
-		vps_id = vps.getDiskVPSID(id)
+		vps_id = vps.get_vps_id_associated_with_disk(id)
 
 				
 		vps.getVPS(vps_id)
@@ -516,7 +516,7 @@ class VMFunc:
 
 		output = subprocess.Popen(['/bin/sh', '-c', delete_disk], stdout=subprocess.PIPE)
 
-		vps.deleteDisk(id)
+		vps.delete_disk_from_database(id)
 
 		####
 		#
@@ -524,8 +524,8 @@ class VMFunc:
 		#
 		####
 
-		Disks = vps.getDisks(vps_id)
-		Devices = vps.getDevices(vps_id)
+		Disks = vps.get_disks_details_from_database(vps_id)
+		Devices = vps.get_devices(vps_id)
 
 		Interface = 2
 

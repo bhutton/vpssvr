@@ -15,15 +15,9 @@ class TestStatus(unittest.TestCase):
         vpsConn = modules.vps.VMFunc("1234,1,status\n")
         assert vpsConn.executeCommand() == "Connection Failed"
 
-
-    @patch('modules.database.DB_Network')
-    def text_database_module(self, exec_function_dbconnect):
-        exec_function_dbconnect().return_value = None
-
+    @patch('mysql.connector')
+    def test_database_connectivity(self, exec_function_connect):
         m = modules.database.DB_Network()
-        m.connect_to_database()
-
-
 
     # Test NetStatus Module via the Execute Command control function
     @patch('modules.database.DB_VPS')
@@ -196,7 +190,7 @@ class TestCreate(unittest.TestCase):
 
         exec_function_checkSecurity.return_value = 'Pass'
 
-        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_genscript.return_value = 1
 
@@ -227,7 +221,7 @@ class TestDelete(unittest.TestCase):
         exec_function_checkSecurity.return_value = 'Pass'
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
-        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
 
         exec_function_genscript.return_value = None
@@ -255,7 +249,7 @@ class TestDelete(unittest.TestCase):
         exec_function_checkSecurity.return_value = 'Pass'
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
-        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
 
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
@@ -281,7 +275,7 @@ class TestDelete(unittest.TestCase):
         exec_function_checkSecurity.return_value = 'Pass'
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
-        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
         exec_function_subprocess_Popen.return_value = -1
 
@@ -307,7 +301,7 @@ class TestDelete(unittest.TestCase):
         exec_function_checkSecurity.return_value = 'Pass'
         modules.database.DB_VPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 999
-        exec_function_dbconnect().getDisk.return_value = (1,1,3)
+        exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -338,7 +332,7 @@ class TestDelete(unittest.TestCase):
         exec_function_dbconnect().getImage.return_value = 999
         exec_function_os_rename.return_value = process_mock
         exec_function_os_path_exists.return_value = process_mock
-        exec_function_dbconnect().getDisk.return_value = (1, 1, 3)
+        exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
 
         vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,delete")
@@ -399,8 +393,8 @@ class TestUpdateVPS(unittest.TestCase):
         modules.database.DB_VPS.getConsole.return_value = '1'
         modules.database.DB_VPS.getStartScript.return_value = '/home/startme.sh'
         modules.database.DB_VPS.getStopScript.return_value = '/home/stopme.sh'
-        modules.database.DB_VPS.getDisks.return_value = '234'
-        modules.database.DB_VPS.getDevices.return_value = '1'
+        modules.database.DB_VPS.get_disks_details_from_database.return_value = '234'
+        modules.database.DB_VPS.get_devices.return_value = '1'
 
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().getPath.return_value = '/usr/mypath'
@@ -439,8 +433,8 @@ class TestUpdateVPS(unittest.TestCase):
         modules.database.DB_VPS.getConsole.return_value = '1'
         modules.database.DB_VPS.getStartScript.return_value = '/home/startme.sh'
         modules.database.DB_VPS.getStopScript.return_value = '/home/stopme.sh'
-        modules.database.DB_VPS.getDisks.return_value = '234'
-        modules.database.DB_VPS.getDevices.return_value = '1'
+        modules.database.DB_VPS.get_disks_details_from_database.return_value = '234'
+        modules.database.DB_VPS.get_devices.return_value = '1'
 
         exec_function_dbconnect().getImage.return_value = 0
         exec_function_dbconnect().getPath.return_value = '/usr/mypath'
@@ -455,13 +449,14 @@ class TestUpdateVPS(unittest.TestCase):
 
 
 class TestSnapShots(unittest.TestCase):
-
+    @patch('mysql.connector')
     @patch('modules.database.DB_VPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_takeSnapshot(
             self,
             exec_function_checkSecurity,
-            exec_function_dbconnect):
+            exec_function_dbconnect,
+            exec_function_connect):
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'success')}

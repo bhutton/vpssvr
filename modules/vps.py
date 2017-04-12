@@ -139,7 +139,7 @@ class VMFunc:
 
     def getNetStatus(self, id):
         vps = database.DB_VPS()
-        devices = vps.getDevices(id)
+        devices = vps.get_devices(id)
 
         output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
 
@@ -426,8 +426,8 @@ class VMFunc:
         Console = vps.getConsole()
         Image = vps.getImage()
         Path = vps.getPath()
-        Disks = vps.getDisks(id)
-        Devices = vps.getDevices(id)
+        Disks = vps.get_disks_details_from_database(id)
+        Devices = vps.get_devices(id)
 
         if (Path == ""):
             Path = RootPath + "/" + str(ID)
@@ -516,7 +516,7 @@ class VMFunc:
         StartScript = vps.getStartScript()
         StopScript = vps.getStopScript()
 
-        Disks = vps.getDisks(vps_id)
+        Disks = vps.get_disks_details_from_database(vps_id)
 
         if (Path == ""):
             VPSPath = RootPath + str(vps_id)
@@ -525,7 +525,7 @@ class VMFunc:
 
         # print "VPS Path: {}".format(VPSPath)
 
-        Devices = vps.getDevices(vps_id)
+        Devices = vps.get_devices(vps_id)
         StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref, ID)
 
         Interface = 2
@@ -591,7 +591,7 @@ class VMFunc:
         cursor.execute("select size,vps_id from disk where id=%s",(id,))
         Disk = cursor.fetchone()'''
 
-        Disk = vps.getDisk(id)
+        Disk = vps.get_disk(id)
 
         vps_id = Disk[1]
         size = Disk[0]
@@ -610,7 +610,7 @@ class VMFunc:
 
         # return "Create Disk for VPS 1\n"
 
-        Disks = vps.getDisks(vps_id)
+        Disks = vps.get_disks_details_from_database(vps_id)
 
         if (Path == ""):
             VPSPath = RootPath + "/" + str(vps_id)
@@ -619,7 +619,7 @@ class VMFunc:
 
         SrcImg = self.setImagePath(Image)
 
-        Devices = vps.getDevices(vps_id)
+        Devices = vps.get_devices(vps_id)
 
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
         BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, Path)
@@ -651,7 +651,7 @@ class VMFunc:
 
         vps = database.DB_VPS()
 
-        vps_id = vps.getDiskVPSID(id)
+        vps_id = vps.get_vps_id_associated_with_disk(id)
 
         vps.getVPS(vps_id)
 
@@ -687,7 +687,7 @@ class VMFunc:
             # return process.returncode
             return "Delete disk failed"
 
-        vps.deleteDisk(id)
+        vps.delete_disk_from_database(id)
 
         ####
         #
@@ -695,8 +695,8 @@ class VMFunc:
         #
         ####
 
-        Disks = vps.getDisks(vps_id)
-        Devices = vps.getDevices(vps_id)
+        Disks = vps.get_disks_details_from_database(vps_id)
+        Devices = vps.get_devices(vps_id)
 
         Interface = 2
 
