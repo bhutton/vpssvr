@@ -17,19 +17,35 @@ class TestStatus(unittest.TestCase):
 
     @patch('mysql.connector')
     def test_database_connectivity(self, exec_function_connect):
-        m = modules.database.DB_Network()
+        m = modules.database.DatabaseNetwork()
+
+    @patch('mysql.connector')
+    def test_get_interface(self, exec_function_connect):
+        exec_function_connect.connect.return_value.\
+            cursor.return_value.\
+            fetchall.return_value = [1,'tue-23-2000',3]
+        m = modules.database.DatabaseNetwork()
+        assert (len(m.get_interface()) > 0)
+
+    @patch('mysql.connector')
+    def test_get_traffic_data(self, exec_function_connect):
+        m = modules.database.DatabaseNetwork()
+        exec_function_connect.connect.return_value. \
+            cursor.return_value. \
+            fetchall.return_value = [1,3,4]
+        assert(len(m.get_traffic_data(1)) > 0)
 
     # Test NetStatus Module via the Execute Command control function
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.execcmd')
     @patch('modules.vps.VMFunc.checkSecurity')
-    def test_executeCommand_netStatus(
+    def test_execute_command_netStatus(
             self,
             exec_function_dbconnect,
             exec_function_checkSecurity,
             exec_function_execcmd):
 
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         # Check that tap interface associated with VM is UP
         modules.vps.VMFunc.execcmd.return_value = 'tap1: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
@@ -45,15 +61,11 @@ class TestStatus(unittest.TestCase):
 
 
 class TestStartStop(unittest.TestCase):
-
-    #
-    # Starting a VPS
-    #
-    @patch('modules.database.DB_VPS')
-    @patch('modules.database.DB_VPS.stopConsole')
-    @patch('modules.database.DB_VPS.stopCommand')
-    @patch('modules.database.DB_VPS.startCommand')
-    @patch('modules.database.DB_VPS.getVPS')
+    @patch('modules.database.DatabaseVPS')
+    @patch('modules.database.DatabaseVPS.stopConsole')
+    @patch('modules.database.DatabaseVPS.stopCommand')
+    @patch('modules.database.DatabaseVPS.startCommand')
+    @patch('modules.database.DatabaseVPS.get_vps_details')
     @patch('modules.vps.VMFunc.execbhyve')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_start(
@@ -61,16 +73,16 @@ class TestStartStop(unittest.TestCase):
             exec_function_dbconnect,
             exec_function_checkSecurity,
             exec_function_execbhyve,
-            exec_function_getvps,
+            exec_function_get_vps_details,
             exec_function_startCommand,
             exec_function_stopCommand,
             exec_function_stopConsole):
 
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         # Starting a VPS
-        modules.database.DB_VPS.getVPS.return_value = '1'
-        modules.database.DB_VPS.startCommand.return_value = '/usr/bin/sh this command'
+        modules.database.DatabaseVPS.get_vps_details.return_value = '1'
+        modules.database.DatabaseVPS.startCommand.return_value = '/usr/bin/sh this command'
 
         modules.vps.VMFunc.execbhyve.return_value = ''
         modules.vps.VMFunc.checkSecurity.return_value = 'Pass'
@@ -82,10 +94,10 @@ class TestStartStop(unittest.TestCase):
     #
     # Stopping a VPS
     #
-    @patch('modules.database.DB_VPS')
-    @patch('modules.database.DB_VPS.stopConsole')
-    @patch('modules.database.DB_VPS.stopCommand')
-    @patch('modules.database.DB_VPS.getVPS')
+    @patch('modules.database.DatabaseVPS')
+    @patch('modules.database.DatabaseVPS.stopConsole')
+    @patch('modules.database.DatabaseVPS.stopCommand')
+    @patch('modules.database.DatabaseVPS.get_vps_details')
     @patch('modules.vps.VMFunc.execbhyve')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_stop(
@@ -93,16 +105,16 @@ class TestStartStop(unittest.TestCase):
             exec_function_dbconnect,
             exec_function_checkSecurity,
             exec_function_execbhyve,
-            exec_function_getvps,
+            exec_function_get_vps_details,
             exec_function_stopCommand,
             exec_function_stopConsole):
 
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         # Stopping a VPS
-        modules.database.DB_VPS.getVPS.return_value = '1'
-        modules.database.DB_VPS.stopCommand.return_value = '/usr/bin/sh this command'
-        modules.database.DB_VPS.stopConsole.return_value = '/usr/bin/sh this command'
+        modules.database.DatabaseVPS.get_vps_details.return_value = '1'
+        modules.database.DatabaseVPS.stopCommand.return_value = '/usr/bin/sh this command'
+        modules.database.DatabaseVPS.stopConsole.return_value = '/usr/bin/sh this command'
 
         modules.vps.VMFunc.execbhyve.return_value = ''
         modules.vps.VMFunc.checkSecurity.return_value = 'Pass'
@@ -116,18 +128,18 @@ class TestCreate(unittest.TestCase):
     #
     # Creating a VPS
     #
-    @patch('modules.database.DB_VPS.getDevices')
-    @patch('modules.database.DB_VPS.getDisks')
-    @patch('modules.database.DB_VPS.getStopScript')
-    @patch('modules.database.DB_VPS.getStartScript')
-    @patch('modules.database.DB_VPS.getPath')
-    @patch('modules.database.DB_VPS.getImage')
-    @patch('modules.database.DB_VPS.getConsole')
-    @patch('modules.database.DB_VPS.getRAM')
-    @patch('modules.database.DB_VPS.getName')
-    @patch('modules.database.DB_VPS.getID')
-    @patch('modules.database.DB_VPS.getVPS')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS.getDevices')
+    @patch('modules.database.DatabaseVPS.getDisks')
+    @patch('modules.database.DatabaseVPS.getStopScript')
+    @patch('modules.database.DatabaseVPS.getStartScript')
+    @patch('modules.database.DatabaseVPS.getPath')
+    @patch('modules.database.DatabaseVPS.getImage')
+    @patch('modules.database.DatabaseVPS.getConsole')
+    @patch('modules.database.DatabaseVPS.getRAM')
+    @patch('modules.database.DatabaseVPS.getName')
+    @patch('modules.database.DatabaseVPS.getID')
+    @patch('modules.database.DatabaseVPS.get_vps_details')
+    @patch('modules.database.DatabaseVPS')
     @patch('os.path.exists')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_createvps(
@@ -135,7 +147,7 @@ class TestCreate(unittest.TestCase):
             exec_function_checkSecurity,
             exec_function_ospathexists,
             exec_function_dbconnect,
-            exec_function_getvps,
+            exec_function_get_vps_details,
             exec_function_getid,
             exec_function_getName,
             exec_function_getRAM,
@@ -147,19 +159,19 @@ class TestCreate(unittest.TestCase):
             exec_function_getDisks,
             exec_function_getDevices):
 
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
-        modules.database.DB_VPS().getVPS.return_value = ''
-        modules.database.DB_VPS().getID.return_value = '1'
-        modules.database.DB_VPS().getName.return_value = 'MyTestVPS'
-        modules.database.DB_VPS().getRAM.return_value = '512'
-        modules.database.DB_VPS().getConsole.return_value = 1
-        modules.database.DB_VPS().getImage.return_value = 1
-        modules.database.DB_VPS().getPath.return_value = '/Users/ben/repos/vpssvr'
-        modules.database.DB_VPS().getStartScript.return_value = '/home/startme.sh'
-        modules.database.DB_VPS().getStopScript.return_value = '/home/stopme.sh'
-        #modules.database.DB_VPS().getDisks.return_value = [1]
-        #modules.database.DB_VPS().getDevices.return_value = [1,3]
+        modules.database.DatabaseVPS().get_vps_details.return_value = ''
+        modules.database.DatabaseVPS().get_vps_id.return_value = '1'
+        modules.database.DatabaseVPS().get_vps_name.return_value = 'MyTestVPS'
+        modules.database.DatabaseVPS().get_vps_memory.return_value = '512'
+        modules.database.DatabaseVPS().getConsole.return_value = 1
+        modules.database.DatabaseVPS().getImage.return_value = 1
+        modules.database.DatabaseVPS().getPath.return_value = '/Users/ben/repos/vpssvr'
+        modules.database.DatabaseVPS().getStartScript.return_value = '/home/startme.sh'
+        modules.database.DatabaseVPS().getStopScript.return_value = '/home/stopme.sh'
+        #modules.database.DatabaseVPS().getDisks.return_value = [1]
+        #modules.database.DatabaseVPS().getDevices.return_value = [1,3]
 
         os.path.exists('/Users/ben/repos/vpssvr').return_value = ''
 
@@ -171,10 +183,10 @@ class TestCreate(unittest.TestCase):
     def altPOpen(self):
         return None
 
-    @patch('modules.database.DB_VPS.getImage')
+    @patch('modules.database.DatabaseVPS.getImage')
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_creatediskimg(
             self,
@@ -205,7 +217,7 @@ class TestDelete(unittest.TestCase):
 
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_success(
             self,
@@ -219,7 +231,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
@@ -233,7 +245,7 @@ class TestDelete(unittest.TestCase):
 
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_fail_on_script_creation(
             self,
@@ -247,7 +259,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
@@ -258,7 +270,7 @@ class TestDelete(unittest.TestCase):
 
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_fail_on_delete(
             self,
@@ -273,7 +285,7 @@ class TestDelete(unittest.TestCase):
 
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
@@ -285,7 +297,7 @@ class TestDelete(unittest.TestCase):
 
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_deletediskimg_fail_on_image(
             self,
@@ -299,7 +311,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 999
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
@@ -314,7 +326,7 @@ class TestDelete(unittest.TestCase):
 
     @patch('os.path.exists')
     @patch('os.rename')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_delete(
             self,
@@ -328,7 +340,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 999
         exec_function_os_rename.return_value = process_mock
         exec_function_os_path_exists.return_value = process_mock
@@ -343,7 +355,7 @@ class TestDelete(unittest.TestCase):
 class TestConsole(unittest.TestCase):
 
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_restartConsole(
             self,
@@ -356,7 +368,7 @@ class TestConsole(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -370,7 +382,7 @@ class TestUpdateVPS(unittest.TestCase):
 
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_success(
             self,
@@ -384,17 +396,17 @@ class TestUpdateVPS(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
-        modules.database.DB_VPS.getVPS.return_value = ''
-        modules.database.DB_VPS.getID.return_value = '1'
-        modules.database.DB_VPS.getName.return_value = 'MyTestVPS'
-        modules.database.DB_VPS.getRAM.return_value = '512'
-        modules.database.DB_VPS.getConsole.return_value = '1'
-        modules.database.DB_VPS.getStartScript.return_value = '/home/startme.sh'
-        modules.database.DB_VPS.getStopScript.return_value = '/home/stopme.sh'
-        modules.database.DB_VPS.get_disks_details_from_database.return_value = '234'
-        modules.database.DB_VPS.get_devices.return_value = '1'
+        modules.database.DatabaseVPS.get_vps_details.return_value = ''
+        modules.database.DatabaseVPS.get_vps_id.return_value = '1'
+        modules.database.DatabaseVPS.get_vps_name.return_value = 'MyTestVPS'
+        modules.database.DatabaseVPS.get_vps_memory.return_value = '512'
+        modules.database.DatabaseVPS.getConsole.return_value = '1'
+        modules.database.DatabaseVPS.getStartScript.return_value = '/home/startme.sh'
+        modules.database.DatabaseVPS.getStopScript.return_value = '/home/stopme.sh'
+        modules.database.DatabaseVPS.get_disks_details_from_database.return_value = '234'
+        modules.database.DatabaseVPS.get_devices.return_value = '1'
 
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().getPath.return_value = '/usr/mypath'
@@ -410,7 +422,7 @@ class TestUpdateVPS(unittest.TestCase):
 
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_error(
             self,
@@ -424,17 +436,17 @@ class TestUpdateVPS(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
-        modules.database.DB_VPS.getVPS.return_value = ''
-        modules.database.DB_VPS.getID.return_value = '1'
-        modules.database.DB_VPS.getName.return_value = 'MyTestVPS'
-        modules.database.DB_VPS.getRAM.return_value = '512'
-        modules.database.DB_VPS.getConsole.return_value = '1'
-        modules.database.DB_VPS.getStartScript.return_value = '/home/startme.sh'
-        modules.database.DB_VPS.getStopScript.return_value = '/home/stopme.sh'
-        modules.database.DB_VPS.get_disks_details_from_database.return_value = '234'
-        modules.database.DB_VPS.get_devices.return_value = '1'
+        modules.database.DatabaseVPS.get_vps_details.return_value = ''
+        modules.database.DatabaseVPS.get_vps_id.return_value = '1'
+        modules.database.DatabaseVPS.get_vps_name.return_value = 'MyTestVPS'
+        modules.database.DatabaseVPS.get_vps_memory.return_value = '512'
+        modules.database.DatabaseVPS.getConsole.return_value = '1'
+        modules.database.DatabaseVPS.getStartScript.return_value = '/home/startme.sh'
+        modules.database.DatabaseVPS.getStopScript.return_value = '/home/stopme.sh'
+        modules.database.DatabaseVPS.get_disks_details_from_database.return_value = '234'
+        modules.database.DatabaseVPS.get_devices.return_value = '1'
 
         exec_function_dbconnect().getImage.return_value = 0
         exec_function_dbconnect().getPath.return_value = '/usr/mypath'
@@ -450,7 +462,7 @@ class TestUpdateVPS(unittest.TestCase):
 
 class TestSnapShots(unittest.TestCase):
     @patch('mysql.connector')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_takeSnapshot(
             self,
@@ -463,7 +475,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         snapshotReturnValue = "Snapshot name = " + str(time.time())
 
@@ -472,7 +484,7 @@ class TestSnapShots(unittest.TestCase):
         assert vpsConn.executeCommand() == snapshotReturnValue
 
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_listSnapshot(
             self,
@@ -485,7 +497,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -494,7 +506,7 @@ class TestSnapShots(unittest.TestCase):
         assert vpsConn.executeCommand() == 'my snapshot list'
 
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_restoreSnapshot(
             self,
@@ -507,7 +519,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -517,7 +529,7 @@ class TestSnapShots(unittest.TestCase):
 
 
     @patch('subprocess.Popen')
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_removeSnapshot(
             self,
@@ -530,7 +542,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -541,11 +553,11 @@ class TestSnapShots(unittest.TestCase):
 
 class TestNetwork(unittest.TestCase):
 
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.execcmd')
     def test_stopNetwork(self, exec_function_dbconnect, exec_function):
 
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         vpsConn = modules.vps.VMFunc("1234,1,status\n")
 
@@ -553,11 +565,11 @@ class TestNetwork(unittest.TestCase):
         assert vpsConn.getNetStatus(1) == 'UP'
 
 
-    @patch('modules.database.DB_VPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.execcmd')
     def test_get_status(self, exec_function_dbconnect, exec_function):
 
-        modules.database.DB_VPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
 
         vpsConn = modules.vps.VMFunc("1234,1,status\n")
 

@@ -6,54 +6,60 @@ import os
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-Config = ConfigParser.ConfigParser()
-Config.read("{}/../configuration.cfg".format(dir_path))
+configuration_settings = ConfigParser.ConfigParser()
+configuration_settings.read("{}/../configuration.cfg".format(dir_path))
 
 config = {
-    'driver': Config.get('Database', 'database_driver'),
-    'user': Config.get('Database', 'database_user'),
-    'password': Config.get('Database', 'database_password'),
-    'host': Config.get('Database', 'database_host'),
-    'database': Config.get('Database', 'database_name'),
+    'driver': configuration_settings.get('Database', 'database_driver'),
+    'user': configuration_settings.get('Database', 'database_user'),
+    'password': configuration_settings.get('Database', 'database_password'),
+    'host': configuration_settings.get('Database', 'database_host'),
+    'database': configuration_settings.get('Database', 'database_name'),
     'raise_on_warnings': True,
 }
 
-class DB_Network:
+class DatabaseNetwork:
     def __init__(self):
         self.cnx = mysql.connector.connect(**config)
         self.cursor = self.cnx.cursor()
 
-    def getInt(self):
+    def get_interface(self):
         self.cursor.execute("select device from interface")
         self.int = self.cursor.fetchall()
         return self.int
 
     def get_traffic_data(self, interface):
         self.cursor.execute(
-            "(SELECT `TotalIpkts`,`TotalOpkts`,`timestamp`,`index` FROM `traffic` where `interface`=%s ORDER BY `index` DESC LIMIT 10) ORDER BY `index` ASC",
+            "(SELECT `TotalIpkts`,"
+            "`TotalOpkts`,"
+            "`timestamp`,"
+            "`index` FROM `traffic` "
+            "where `interface`=%s "
+            "ORDER BY `index` DESC LIMIT 10) "
+            "ORDER BY `index` ASC",
             (interface,))
         self.row = self.cursor.fetchall()
         return self.row
 
 
-class DB_VPS:
+class DatabaseVPS:
     vps = []
 
     def __init__(self):
-        Config = ConfigParser.ConfigParser()
-        Config.read("{}/../configuration.cfg".format(dir_path))
+        configuration_settings = ConfigParser.ConfigParser()
+        configuration_settings.read("{}/../configuration.cfg".format(dir_path))
 
-        config = {
-            'user': Config.get('Database', 'database_user'),
-            'password': Config.get('Database', 'database_password'),
-            'host': Config.get('Database', 'database_host'),
-            'database': Config.get('Database', 'database_database'),
+        configuration_settings = {
+            'user': configuration_settings.get('Database', 'database_user'),
+            'password': configuration_settings.get('Database', 'database_password'),
+            'host': configuration_settings.get('Database', 'database_host'),
+            'database': configuration_settings.get('Database', 'database_database'),
             'raise_on_warnings': True,
         }
 
-        self.root_path = Config.get('Global', 'RootPath')
+        self.root_path = configuration_settings.get('Global', 'RootPath')
 
-        self.cnx = mysql.connector.connect(**config)
+        self.cnx = mysql.connector.connect(**configuration_settings)
         self.cursor = self.cnx.cursor()
 
     def get_device(self, id):
@@ -92,45 +98,45 @@ class DB_VPS:
         self.cursor.execute("delete from disk where id=%s", (id,))
         self.cnx.commit()
 
-    def getVPS(self, id):
+    def get_vps_details(self, id):
         get_vps_details_sql_query = ("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s")
         self.cursor.execute(get_vps_details_sql_query, (id,))
         self.vps = self.cursor.fetchone()
 
-        self.ID = self.vps[0]
-        self.Name = self.vps[1]
-        self.RAM = self.vps[2]
-        self.Console = self.vps[3]
-        self.Image = self.vps[4]
-        self.Path = self.vps[5]
-        self.StartScript = self.vps[6]
-        self.StopScript = self.vps[7]
+        self.id = self.vps[0]
+        self.name = self.vps[1]
+        self.memory = self.vps[2]
+        self.console_number = self.vps[3]
+        self.image = self.vps[4]
+        self.file_system_path = self.vps[5]
+        self.start_script_file = self.vps[6]
+        self.stop_script_path = self.vps[7]
 
         return self.vps
 
-    def getID(self):
-        return (self.ID)
+    def get_vps_id(self):
+        return (self.id)
 
-    def getName(self):
-        return (self.Name)
+    def get_vps_name(self):
+        return (self.name)
 
-    def getRAM(self):
-        return (self.RAM)
+    def get_vps_memory(self):
+        return (self.memory)
 
     def getConsole(self):
-        return (self.Console)
+        return (self.console_number)
 
     def getImage(self):
-        return (self.Image)
+        return (self.image)
 
     def getPath(self):
-        return (self.Path)
+        return (self.file_system_path)
 
     def getStartScript(self):
-        return (self.StartScript)
+        return (self.start_script_file)
 
     def getStopScript(self):
-        return (self.StopScript)
+        return (self.stop_script_path)
 
     def startCommand(self, RootPath):
 
@@ -164,6 +170,6 @@ class DB_VPS:
 
         return ("/bin/sh " + vps_path + "/" + vps_stopscript)
 
-    def stopConsole(self, RootPath):
+    def stopConsole(self, root_path):
         vps_id = str(self.vps[0])
-        return ("sh " + RootPath + "/" + vps_id + "/stopconsole.sh")
+        return ("sh " + root_path + "/" + vps_id + "/stopconsole.sh")

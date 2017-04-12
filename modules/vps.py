@@ -138,7 +138,7 @@ class VMFunc:
         return (self.status)
 
     def getNetStatus(self, id):
-        vps = database.DB_VPS()
+        vps = database.DatabaseVPS()
         devices = vps.get_devices(id)
 
         output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
@@ -301,8 +301,8 @@ class VMFunc:
     def checkStatus(self, vps_id):
         self.id = vps_id
 
-        VPS_Conn = database.DB_VPS()
-        VPS = VPS_Conn.getVPS(self.id)
+        VPS_Conn = database.DatabaseVPS()
+        VPS = VPS_Conn.get_vps_details(self.id)
 
         vps_id = str(VPS[0])
         vps_startscript = VPS[5]
@@ -318,12 +318,12 @@ class VMFunc:
             return "Stopped"
 
     def start(self, id):
-        VPS_DB = database.DB_VPS()
+        VPS_DB = database.DatabaseVPS()
         self.execbhyve(VPS_DB.startCommand(RootPath), str(id))
         return "Started VPS {}\n".format(id)
 
     def stop(self, id):
-        VPS_DB = database.DB_VPS()
+        VPS_DB = database.DatabaseVPS()
         self.execbhyve(VPS_DB.stopCommand(RootPath), str(id))
         self.execbhyve(VPS_DB.stopConsole(RootPath), str(id))
         return "Stopped VPS {}\n".format(id)
@@ -417,12 +417,12 @@ class VMFunc:
 
     def createvps(self, id):
 
-        vps = database.DB_VPS()
-        vps.getVPS(id)
+        vps = database.DatabaseVPS()
+        vps.get_vps_details(id)
 
-        ID = vps.getID()
-        Name = vps.getName()
-        RAM = vps.getRAM()
+        ID = vps.get_vps_id()
+        Name = vps.get_vps_name()
+        RAM = vps.get_vps_memory()
         Console = vps.getConsole()
         Image = vps.getImage()
         Path = vps.getPath()
@@ -504,12 +504,12 @@ class VMFunc:
 
     def updateVPS(self, vps_id):
 
-        vps = database.DB_VPS()
-        vps.getVPS(vps_id)
+        vps = database.DatabaseVPS()
+        vps.get_vps_details(vps_id)
 
-        ID = vps.getID()
-        Name = vps.getName()
-        RAM = vps.getRAM()
+        ID = vps.get_vps_id()
+        Name = vps.get_vps_name()
+        RAM = vps.get_vps_memory()
         Console = vps.getConsole()
         Image = vps.getImage()
         Path = vps.getPath()
@@ -583,7 +583,7 @@ class VMFunc:
 
     def createDiskImg(self, id):
 
-        vps = database.DB_VPS()
+        vps = database.DatabaseVPS()
         # return vps.getImage()
 
         '''cnx = mysql.connector.connect(**config)
@@ -597,11 +597,11 @@ class VMFunc:
         size = Disk[0]
         Interface = 2
 
-        vps.getVPS(vps_id)
+        vps.get_vps_details(vps_id)
 
-        ID = vps.getID()
-        Name = vps.getName()
-        RAM = vps.getRAM()
+        ID = vps.get_vps_id()
+        Name = vps.get_vps_name()
+        RAM = vps.get_vps_memory()
         Console = vps.getConsole()
         Image = vps.getImage()
         Path = vps.getPath()
@@ -649,15 +649,15 @@ class VMFunc:
 
     def deleteDisk(self, id):
 
-        vps = database.DB_VPS()
+        vps = database.DatabaseVPS()
 
         vps_id = vps.get_vps_id_associated_with_disk(id)
 
-        vps.getVPS(vps_id)
+        vps.get_vps_details(vps_id)
 
-        ID = vps.getID()
-        Name = vps.getName()
-        RAM = vps.getRAM()
+        ID = vps.get_vps_id()
+        Name = vps.get_vps_name()
+        RAM = vps.get_vps_memory()
         Console = vps.getConsole()
         Image = vps.getImage()
         Path = vps.getPath()

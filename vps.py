@@ -153,7 +153,7 @@ class VMFunc:
 		self.id = vps_id
 
 		VPS_Conn = database.DB_VPS()
-		VPS = VPS_Conn.getVPS(self.id)
+		VPS = VPS_Conn.get_vps_details(self.id)
 
 		vps_id          = str(VPS[0])
 		vps_name        = VPS[1]
@@ -169,7 +169,7 @@ class VMFunc:
 	def start(self,id):
         
 		VPS_DB = database.DB_VPS()
-		VPS = VPS_DB.getVPS(id)
+		VPS = VPS_DB.get_vps_details(id)
 
 		self.execbhyve(VPS_DB.startCommand(RootPath),str(id))
 
@@ -178,7 +178,7 @@ class VMFunc:
 	def stop(self,id):
 
 		VPS_DB = database.DB_VPS()
-		VPS = VPS_DB.getVPS(id)
+		VPS = VPS_DB.get_vps_details(id)
 
 		#VPS_Con = modules.vps.VMFunc()
 		self.execbhyve(VPS_DB.stopCommand(RootPath),str(id))
@@ -270,11 +270,11 @@ class VMFunc:
 	def createvps(self,id):
 		
 		vps = database.DB_VPS()
-		vps.getVPS(id)
+		vps.get_vps_details(id)
 
-		ID 			= vps.getID()
-		Name 		= vps.getName()
-		RAM 		= vps.getRAM()
+		ID 			= vps.get_vps_id()
+		Name 		= vps.get_vps_name()
+		RAM 		= vps.get_vps_memory()
 		Console 	= vps.getConsole()
 		Image 		= vps.getImage()
 		Path 		= vps.getPath()
@@ -353,11 +353,11 @@ class VMFunc:
 		
 		vps = database.DB_VPS()
 		#vpsConn = modules.vps.VMFunc()
-		vps.getVPS(vps_id)
+		vps.get_vps_details(vps_id)
 
-		ID = vps.getID()
-		Name = vps.getName()
-		RAM = vps.getRAM()
+		ID = vps.get_vps_id()
+		Name = vps.get_vps_name()
+		RAM = vps.get_vps_memory()
 		Console = vps.getConsole()
 		Image = vps.getImage()
 		Path = vps.getPath()
@@ -437,11 +437,11 @@ class VMFunc:
 		Interface = 2
 
 		vps = database.DB_VPS()
-		vps.getVPS(vps_id)
+		vps.get_vps_details(vps_id)
 
-		ID = vps.getID()
-		Name = vps.getName()
-		RAM = vps.getRAM()
+		ID = vps.get_vps_id()
+		Name = vps.get_vps_name()
+		RAM = vps.get_vps_memory()
 		Console = vps.getConsole()
 		Image = vps.getImage()
 		Path = vps.getPath()
@@ -493,11 +493,11 @@ class VMFunc:
 		vps_id = vps.get_vps_id_associated_with_disk(id)
 
 				
-		vps.getVPS(vps_id)
+		vps.get_vps_details(vps_id)
 
-		ID = vps.getID()
-		Name = vps.getName()
-		RAM = vps.getRAM()
+		ID = vps.get_vps_id()
+		Name = vps.get_vps_name()
+		RAM = vps.get_vps_memory()
 		Console = vps.getConsole()
 		Image = vps.getImage()
 		Path = vps.getPath()

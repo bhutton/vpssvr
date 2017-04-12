@@ -27,8 +27,8 @@ last_timezone = ("select max(timestamp) from `traffic` where `interface`=%s")
 netstat_cmd	= "/usr/bin/netstat"
 args = "-b -I"
 
-network = database.DB_Network()
-tunnel = network.getInt()
+network = database.DatabaseNetwork()
+tunnel = network.get_interface()
 
 for interface in tunnel:
 
