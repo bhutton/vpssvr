@@ -19,6 +19,10 @@ class TestStatus(unittest.TestCase):
     def test_database_connectivity(self, exec_function_connect):
         m = modules.database.DatabaseNetwork()
 
+    # modify test for database exception!!!
+    def test_database_connectivity(self):
+        m = modules.database.DatabaseNetwork()
+
     @patch('mysql.connector')
     def test_get_interface(self, exec_function_connect):
         exec_function_connect.connect.return_value.\
