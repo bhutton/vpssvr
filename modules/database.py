@@ -23,7 +23,7 @@ class DatabaseNetwork:
         try:
             self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
-        except:
+        except IOError:
             print "Error connecting to database"
 
     def __exit__(self):
