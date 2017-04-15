@@ -23,14 +23,17 @@ class DatabaseNetwork:
         try:
             self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
-        except IOError:
-            print "Error connecting to database"
+        except:
+            self.database_connected = False
 
     def __exit__(self):
         try:
             self.cnx.close()
         except:
             print "Error closing database"
+
+    def get_database_connection_status(self):
+        return self.database_connected
 
     def get_interface(self):
         self.cursor.execute("select device from interface")
