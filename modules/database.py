@@ -65,7 +65,7 @@ class DatabaseVPS:
             'user': configuration_settings.get('Database', 'database_user'),
             'password': configuration_settings.get('Database', 'database_password'),
             'host': configuration_settings.get('Database', 'database_host'),
-            'database': configuration_settings.get('Database', 'database_database'),
+            'database': configuration_settings.get('Database', 'database_name'),
             'raise_on_warnings': True,
         }
 
@@ -111,8 +111,9 @@ class DatabaseVPS:
         self.cnx.commit()
 
     def get_vps_details(self, id):
+
         get_vps_details_sql_query = ("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s")
-        self.cursor.execute(get_vps_details_sql_query, (id,))
+        self.cursor.execute("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s", (id,))
         self.vps = self.cursor.fetchone()
 
         self.id = self.vps[0]
@@ -125,6 +126,7 @@ class DatabaseVPS:
         self.stop_script_path = self.vps[7]
 
         return self.vps
+
 
     def get_vps_id(self):
         return (self.id)
@@ -152,6 +154,9 @@ class DatabaseVPS:
 
     def startCommand(self, RootPath):
 
+        #print "Rootpath = ".format(RootPath)
+        #print "Get VPS ID = {}".format(self.get_vps_id())
+        #self.vps = self.get_vps_details(self.get_vps_id())
         vps_id = str(self.vps[0])
         vps_name = self.vps[1]
         vps_ram = self.vps[2]
@@ -160,8 +165,12 @@ class DatabaseVPS:
         vps_startscript = self.vps[6]
         vps_stopscript = self.vps[7]
 
+        print "vps_path = {}".format(vps_path)
+
         if (vps_startscript == ""): vps_startscript = "start.sh"
-        if (vps_path == ""): vps_path = self.root_path + "/" + vps_id
+        if (vps_path == ""): vps_path = RootPath + "/" + vps_id
+
+        print "vps_path = {}".format(vps_path)
 
         print "command = " + str(vps_path) + "/" + vps_startscript
 

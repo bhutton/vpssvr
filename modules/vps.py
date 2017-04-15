@@ -176,6 +176,8 @@ class VMFunc:
             return "Error with ".format(LogFile)
 
     def execbhyve(self, command, ID):
+
+        print "ID = {}".format(ID)
         self.command = command
         self.id = ID
 
@@ -319,6 +321,7 @@ class VMFunc:
 
     def start(self, id):
         VPS_DB = database.DatabaseVPS()
+        VPS_DB.get_vps_details(id)
         self.execbhyve(VPS_DB.startCommand(RootPath), str(id))
         return "Started VPS {}\n".format(id)
 
