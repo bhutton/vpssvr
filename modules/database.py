@@ -18,16 +18,20 @@ config = {
     'raise_on_warnings': True,
 }
 
+
 class DatabaseNetwork:
     def __init__(self):
         try:
             self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
         except:
+            print "error connecting to database"
             self.database_connected = False
 
     def __exit__(self):
         try:
+            self.cnx = mysql.connector.connect(**config)
+            self.cursor = self.cnx.cursor()
             self.cnx.close()
         except:
             print "Error closing database"
@@ -76,7 +80,7 @@ class DatabaseVPS:
 
     def get_device(self, id):
         get_device_sql_query = (
-        "select interface.id,interface.device,interface.vps_id,bridge.device from interface,bridge where vps_id=%s and interface.bridge_id = bridge.id")
+            "select interface.id,interface.device,interface.vps_id,bridge.device from interface,bridge where vps_id=%s and interface.bridge_id = bridge.id")
         self.cursor.execute(get_device_sql_query, (id,))
         self.int = self.cursor.fetchall()
 
@@ -112,8 +116,10 @@ class DatabaseVPS:
 
     def get_vps_details(self, id):
 
-        get_vps_details_sql_query = ("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s")
-        self.cursor.execute("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s", (id,))
+        get_vps_details_sql_query = (
+        "select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s")
+        self.cursor.execute("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s",
+                            (id,))
         self.vps = self.cursor.fetchone()
 
         self.id = self.vps[0]
@@ -126,7 +132,6 @@ class DatabaseVPS:
         self.stop_script_path = self.vps[7]
 
         return self.vps
-
 
     def get_vps_id(self):
         return (self.id)
@@ -154,9 +159,9 @@ class DatabaseVPS:
 
     def startCommand(self, RootPath):
 
-        #print "Rootpath = ".format(RootPath)
-        #print "Get VPS ID = {}".format(self.get_vps_id())
-        #self.vps = self.get_vps_details(self.get_vps_id())
+        # print "Rootpath = ".format(RootPath)
+        # print "Get VPS ID = {}".format(self.get_vps_id())
+        # self.vps = self.get_vps_details(self.get_vps_id())
         vps_id = str(self.vps[0])
         vps_name = self.vps[1]
         vps_ram = self.vps[2]
