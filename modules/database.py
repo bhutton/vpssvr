@@ -6,21 +6,21 @@ import os
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-configuration_settings = ConfigParser.ConfigParser()
-configuration_settings.read("{}/../configuration.cfg".format(dir_path))
-
-config = {
-    'driver': configuration_settings.get('Database', 'database_driver'),
-    'user': configuration_settings.get('Database', 'database_user'),
-    'password': configuration_settings.get('Database', 'database_password'),
-    'host': configuration_settings.get('Database', 'database_host'),
-    'database': configuration_settings.get('Database', 'database_name'),
-    'raise_on_warnings': True,
-}
-
-
 class DatabaseNetwork:
     def __init__(self):
+
+        configuration_settings = ConfigParser.ConfigParser()
+        configuration_settings.read("{}/../configuration.cfg".format(dir_path))
+
+        config = {
+            'driver': configuration_settings.get('Database', 'database_driver'),
+            'user': configuration_settings.get('Database', 'database_user'),
+            'password': configuration_settings.get('Database', 'database_password'),
+            'host': configuration_settings.get('Database', 'database_host'),
+            'database': configuration_settings.get('Database', 'database_name'),
+            'raise_on_warnings': True,
+        }
+
         try:
             self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
@@ -100,10 +100,10 @@ class DatabaseVPS:
         return (VPS[0])
 
     def get_disk(self, id):
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-        cursor.execute("select size,vps_id from disk where id=%s", (id,))
-        return cursor.fetchone()
+        #cnx = mysql.connector.connect(**config)
+        #cursor = cnx.cursor()
+        self.cnx.cursor.execute("select size,vps_id from disk where id=%s", (id,))
+        return self.cnx.cursor.fetchone()
 
     def get_disks_details_from_database(self, id):
 
@@ -192,7 +192,7 @@ class DatabaseVPS:
         vps_stopscript = self.vps[7]
 
         if (vps_startscript == ""): vps_stopscript = "stop.sh"
-        if (vps_path == ""): vps_path = self.root_path + "/" + vps_id
+        if (vps_path == ""): vps_path = RootPath + "/" + vps_id
 
         return ("/bin/sh " + vps_path + "/" + vps_stopscript)
 

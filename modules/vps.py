@@ -327,6 +327,7 @@ class VMFunc:
 
     def stop(self, id):
         VPS_DB = database.DatabaseVPS()
+        VPS_DB.get_vps_details(id)
         self.execbhyve(VPS_DB.stopCommand(RootPath), str(id))
         self.execbhyve(VPS_DB.stopConsole(RootPath), str(id))
         return "Stopped VPS {}\n".format(id)
