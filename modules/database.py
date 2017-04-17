@@ -5,25 +5,23 @@ import ConfigParser
 import os
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+configuration_settings = ConfigParser.ConfigParser()
+configuration_settings.read("{}/../configuration.cfg".format(dir_path))
+
+config = {
+    'user': configuration_settings.get('Database', 'database_user'),
+    'password': configuration_settings.get('Database', 'database_password'),
+    'host': configuration_settings.get('Database', 'database_host'),
+    'database': configuration_settings.get('Database', 'database_name'),
+    'raise_on_warnings': True,
+}
 
 class DatabaseNetwork:
     def __init__(self):
-
-        configuration_settings = ConfigParser.ConfigParser()
-        configuration_settings.read("{}/../configuration.cfg".format(dir_path))
-
-        config = {
-            'driver': configuration_settings.get('Database', 'database_driver'),
-            'user': configuration_settings.get('Database', 'database_user'),
-            'password': configuration_settings.get('Database', 'database_password'),
-            'host': configuration_settings.get('Database', 'database_host'),
-            'database': configuration_settings.get('Database', 'database_name'),
-            'raise_on_warnings': True,
-        }
-
         try:
             self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
+            self.database_connected = True
         except:
             print "error connecting to database"
             self.database_connected = False
@@ -40,6 +38,8 @@ class DatabaseNetwork:
         return self.database_connected
 
     def get_interface(self):
+        self.cnx = mysql.connector.connect(**config)
+        self.cursor = self.cnx.cursor()
         self.cursor.execute("select device from interface")
         self.int = self.cursor.fetchall()
         return self.int

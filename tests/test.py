@@ -11,7 +11,6 @@ class TestStatus(unittest.TestCase):
 
     # See what happens if an invalid password is used
     def test_checkSecurity(self):
-
         vpsConn = modules.vps.VMFunc("1234,1,status\n")
         assert vpsConn.executeCommand() == "Connection Failed"
 
@@ -19,11 +18,12 @@ class TestStatus(unittest.TestCase):
     def test_database_connectivity(self, exec_function_connect):
         m = modules.database.DatabaseNetwork()
         #self.assertRaises(m, m.__init__())
+        assert (m.get_database_connection_status() == True)
 
     # modify test for database exception!!!
-    def test_database_connectivity(self):
-        m = modules.database.DatabaseNetwork()
-        assert(m.get_database_connection_status() == False)
+    #def test_database_connectivity(self):
+    #    m = modules.database.DatabaseNetwork()
+    #    assert(m.get_database_connection_status() == False)
 
     @patch('mysql.connector')
     def test_get_interface(self, exec_function_connect):
