@@ -481,6 +481,9 @@ class VMFunc:
                 DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
                 self.generateScript(DeviceMapScript, DevicemapData)
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
+            elif (Image == self.Win10):
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
+
 
 
             StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl, ID)
@@ -673,12 +676,14 @@ class VMFunc:
         else:
             VPSPath = Path
 
-        if (Image == 1):
+        if (Image == self.FreeBSD):
             SrcImg = SrcImgFreeBSD
-        elif (Image == 2):
+        elif (Image == self.Ubuntu):
             SrcImg = SrcImgUbuntu
-        elif (Image == 3):
+        elif (Image == self.Centos):
             SrcImg = SrcImgCentos
+        elif (Image == self.Win10):
+            SrcImg = SrcImgWin10
         else:
             return "Error: no image found"
 

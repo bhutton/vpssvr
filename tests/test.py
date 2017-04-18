@@ -17,13 +17,12 @@ class TestStatus(unittest.TestCase):
     @patch('mysql.connector')
     def test_database_connectivity(self, exec_function_connect):
         m = modules.database.DatabaseNetwork()
-        #self.assertRaises(m, m.__init__())
         assert (m.get_database_connection_status() == True)
 
     # modify test for database exception!!!
-    #def test_database_connectivity(self):
-    #    m = modules.database.DatabaseNetwork()
-    #    assert(m.get_database_connection_status() == False)
+    def test_database_connectivity(self):
+        m = modules.database.DatabaseNetwork()
+        assert(m.get_database_connection_status() == False)
 
     @patch('mysql.connector')
     def test_get_interface(self, exec_function_connect):

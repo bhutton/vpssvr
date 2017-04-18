@@ -1,5 +1,3 @@
-# from flask import Flask
-# from flaskext.mysql import MySQL
 import mysql.connector
 import ConfigParser
 import os
@@ -9,6 +7,7 @@ configuration_settings = ConfigParser.ConfigParser()
 configuration_settings.read("{}/../configuration.cfg".format(dir_path))
 
 config = {
+    'driver': configuration_settings.get('Database', 'database_driver'),
     'user': configuration_settings.get('Database', 'database_user'),
     'password': configuration_settings.get('Database', 'database_password'),
     'host': configuration_settings.get('Database', 'database_host'),
