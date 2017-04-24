@@ -7,11 +7,7 @@ BHyve Server for VPS Manager App
 
 from subprocess import Popen
 import SocketServer
-#import mysql.connector
-#import subprocess
 import os
-#import shutil
-#import multiprocessing
 import ConfigParser
 import modules.database
 import modules.vps
