@@ -11,7 +11,7 @@ class TestPublicVPSDetails(unittest.TestCase):
     def test_create_database_record(self):
         g = publish_vps_details.GetDetails()
         g.get_ip_address()
-        g.create_database_entry()
+        g.create_database_entry(878)
 
 
 if __name__ == '__main__':
