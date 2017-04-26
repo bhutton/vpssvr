@@ -58,11 +58,15 @@ config = {
 
 
 class VMFunc:
-    def __init__(self, data):
-        Data = data.split(',')
+    def __init__(self):
+        '''Data = data.split(',')
         self.Auth = Data[0]
         self.id = int(Data[1])
-        Command = Data[2]
+        Command = Data[2]'''
+
+        #self.id = data
+        self.id = ''
+        Command = ''
 
         try:
             createDisk = Data[3]
@@ -84,6 +88,8 @@ class VMFunc:
         self.Ubuntu = 2
         self.Centos = 3
         self.Win10 = 4
+        #self.status = self.checkStatus(self.id)
+        self.status = ''
 
     def checkSecurity(self):
 
@@ -315,8 +321,10 @@ class VMFunc:
             return "Installing"
 
         if (os.path.exists("/dev/vmm/" + str(vps_id))):
-            return "Running"
+            self.status = "Running"
+            #return "Running"
         else:
+            self.status = "Stopped"
             return "Stopped"
 
     def start(self, id):

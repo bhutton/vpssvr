@@ -1,24 +1,32 @@
-import mysql.connector
 import ConfigParser
 import os
+from flask import Flask
+from flaskext.mysql import MySQL
+
+app = Flask(__name__)
+app.config.from_object(__name__)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-configuration_settings = ConfigParser.ConfigParser()
-configuration_settings.read("{}/../configuration.cfg".format(dir_path))
 
-config = {
-    'driver': configuration_settings.get('Database', 'database_driver'),
-    'user': configuration_settings.get('Database', 'database_user'),
-    'password': configuration_settings.get('Database', 'database_password'),
-    'host': configuration_settings.get('Database', 'database_host'),
-    'database': configuration_settings.get('Database', 'database_name'),
-    'raise_on_warnings': True,
-}
+mysql = MySQL()
+
+# Get MySQL configurations from configuration.cfg
+Config = ConfigParser.ConfigParser()
+Config.read("{}/../configuration.cfg".format(dir_path))
+app.config['MYSQL_DATABASE_USER']       = Config.get('Database','database_user')
+app.config['MYSQL_DATABASE_PASSWORD']   = Config.get('Database','database_password')
+app.config['MYSQL_DATABASE_DB']         = Config.get('Database','database_name')
+app.config['MYSQL_DATABASE_HOST']       = Config.get('Database','database_host')
+mysql.init_app(app)
 
 class DatabaseNetwork:
     def __init__(self):
         try:
-            self.cnx = mysql.connector.connect(**config)
+
+            self.cnx = mysql.connect()
+            #self.cursor = self.conn.cursor()
+
+            #self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
             self.database_connected = True
         except:
@@ -27,7 +35,8 @@ class DatabaseNetwork:
 
     def __exit__(self):
         try:
-            self.cnx = mysql.connector.connect(**config)
+            self.cnx = mysql.connect()
+            #self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
             self.cnx.close()
         except:
@@ -37,7 +46,8 @@ class DatabaseNetwork:
         return self.database_connected
 
     def get_interface(self):
-        self.cnx = mysql.connector.connect(**config)
+        self.cnx = mysql.connect()
+        #self.cnx = mysql.connector.connect(**config)
         self.cursor = self.cnx.cursor()
         self.cursor.execute("select device from interface")
         self.int = self.cursor.fetchall()
@@ -74,7 +84,8 @@ class DatabaseVPS:
 
         self.root_path = configuration_settings.get('Global', 'RootPath')
 
-        self.cnx = mysql.connector.connect(**configuration_settings)
+        self.cnx = mysql.connect()
+        #self.cnx = mysql.connector.connect(**configuration_settings)
         self.cursor = self.cnx.cursor()
 
     def get_device(self, id):

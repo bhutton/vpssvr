@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 description = 'this description'
 
-tasks = [
+'''tasks = [
     {
         'id': 1,
         'name': u'server #1',
@@ -23,7 +23,7 @@ tasks = [
         'description': u'Need to find a good Python tutorial on the web',
         'done': False
     }
-]
+]'''
 
 @auth.get_password
 def get_password(username):
@@ -39,9 +39,15 @@ def unauthorized():
 @app.route('/vpssvr/api/v1.0/tasks/status/<int:vps_id>', methods=['GET'])
 @auth.login_required
 def get_status(vps_id):
+    v = vps.VMFunc()
+    v.checkStatus(vps_id)
+    status = v.getStatus()
+    return jsonify({'status': status})
 
-    v = vps.VMFunc(878)
-    status = get_status(vps_id)
+#@app.route('/vpssvr/api/v1.0/tasks/status/<int:vps_id>', methods=['GET'])
+#@auth.login_required
+#def get_status(vps_id):
+
 
 
 
