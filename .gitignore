@@ -17,3 +17,5 @@ foo.png.new
 *.pyc
 .idea/
 demo_test_cmd.py
+./flask/
+flask/
