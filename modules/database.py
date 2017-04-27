@@ -22,11 +22,7 @@ mysql.init_app(app)
 class DatabaseNetwork:
     def __init__(self):
         try:
-
             self.cnx = mysql.connect()
-            #self.cursor = self.conn.cursor()
-
-            #self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
             self.database_connected = True
         except:
@@ -46,7 +42,7 @@ class DatabaseNetwork:
         return self.database_connected
 
     def get_interface(self):
-        self.cnx = mysql.connect()
+        #self.cnx = mysql.connect()
         #self.cnx = mysql.connector.connect(**config)
         self.cursor = self.cnx.cursor()
         self.cursor.execute("select device from interface")

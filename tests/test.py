@@ -5,15 +5,19 @@ from mock import patch
 import modules.database as database
 import modules.vps as vps
 import time
+from flaskext.mysql import MySQL
 
 
 class TestStatus(unittest.TestCase):
+    def setUp(self):
+        self.v = vps.VMFunc()
 
-    @patch('mysql.connector')
+    @patch('flaskext.mysql.MySQL.connect')
     def test_get_status(self, mysql_connector):
-        v = vps.VMFunc()
-        v.checkStatus(878)
-        assert(v.getStatus() != '')
+        mysql_connector.return_value.connect.return_value = None
+
+        self.v.checkStatus(878)
+        assert(self.v.getStatus() != '')
 
     # See what happens if an invalid password is used
     '''def test_checkSecurity(self):
@@ -21,27 +25,28 @@ class TestStatus(unittest.TestCase):
         assert vpsConn.executeCommand() == "Connection Failed"
         '''
 
-    @patch('mysql.connector')
+    @patch('flaskext.mysql.MySQL.connect')
     def test_database_connectivity(self, exec_function_connect):
-        #m = modules.database.DatabaseNetwork()
-        #assert (m.get_database_connection_status() == True)
         d = database.DatabaseNetwork()
         assert(d.get_database_connection_status() == True)
 
     # modify test for database exception!!!
-    '''def test_database_connectivity(self):
-        m = modules.database.DatabaseNetwork()
-        assert(m.get_database_connection_status() == False)'''
+    def test_database_connectivity(self):
+        m = database.DatabaseNetwork()
+        assert(m.get_database_connection_status() == False)
 
-    '''@patch('mysql.connector')
+    @patch('flaskext.mysql.MySQL.connect')
     def test_get_interface(self, exec_function_connect):
-        exec_function_connect.connect.return_value.\
-            cursor.return_value.\
-            fetchall.return_value = [1,'tue-23-2000',3]
-        m = modules.database.DatabaseNetwork()
-        assert (len(m.get_interface()) > 0)'''
+        #mysql_connector.return_value.connect.return_value
+        #exec_function_connect.connector.return_value.cursor.return_value.fetchall.return_value = [1,'tue-23-2000',3]
+        exec_function_connect.return_value.connect.return_value = None
+        #exec_function_connect.connect.return_value.cursor.return_value.fetchall.return_value = [1,'tue-23-2000',3]
+        m = database.DatabaseNetwork()
+        exec_function_connect.connect.return_value.cursor.return_value.fetchall.return_value = [1, 'tue-23-2000', 3]
+        print m.get_interface()
+        #assert (len(m.get_interface()) > 0)
 
-    '''@patch('mysql.connector')
+    '''@patch('flaskext.mysql.MySQL.connect')
     def test_get_traffic_data(self, exec_function_connect):
         m = modules.database.DatabaseNetwork()
         exec_function_connect.connect.return_value. \
@@ -59,7 +64,7 @@ class TestStatus(unittest.TestCase):
             exec_function_checkSecurity,
             exec_function_execcmd):
 
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         # Check that tap interface associated with VM is UP
         modules.vps.VMFunc.execcmd.return_value = 'tap1: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
@@ -93,7 +98,7 @@ class TestStartStop(unittest.TestCase):
             exec_function_stopCommand,
             exec_function_stopConsole):
 
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         # Starting a VPS
         modules.database.DatabaseVPS.get_vps_details.return_value = '1'
@@ -124,7 +129,7 @@ class TestStartStop(unittest.TestCase):
             exec_function_stopCommand,
             exec_function_stopConsole):
 
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         # Stopping a VPS
         database.DatabaseVPS.get_vps_details.return_value = '1'
@@ -174,7 +179,7 @@ class TestCreate(unittest.TestCase):
             exec_function_getDisks,
             exec_function_getDevices):
 
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         database.DatabaseVPS().get_vps_details.return_value = ''
         database.DatabaseVPS().get_vps_id.return_value = '1'
@@ -246,7 +251,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
@@ -276,7 +281,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
@@ -303,7 +308,7 @@ class TestDelete(unittest.TestCase):
 
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
@@ -330,7 +335,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 999
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
@@ -360,7 +365,7 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 999
         exec_function_os_rename.return_value = process_mock
         exec_function_os_path_exists.return_value = process_mock
@@ -389,7 +394,7 @@ class TestConsole(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -419,7 +424,7 @@ class TestUpdateVPS(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         database.DatabaseVPS.get_vps_details.return_value = ''
         database.DatabaseVPS.get_vps_id.return_value = '1'
@@ -461,7 +466,7 @@ class TestUpdateVPS(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         modules.database.DatabaseVPS.get_vps_details.return_value = ''
         modules.database.DatabaseVPS.get_vps_id.return_value = '1'
@@ -487,7 +492,7 @@ class TestUpdateVPS(unittest.TestCase):
 
 
 class TestSnapShots(unittest.TestCase):
-    @patch('mysql.connector')
+    @patch('flaskext.mysql.MySQL.connect')
     @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_takeSnapshot(
@@ -501,7 +506,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         snapshotReturnValue = "Snapshot name = " + str(time.time())
 
@@ -525,7 +530,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -548,7 +553,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -572,7 +577,7 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.mysql.connector.connect.return_value = None
+        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -588,7 +593,7 @@ class TestNetwork(unittest.TestCase):
     @patch('modules.vps.VMFunc.execcmd')
     def test_stopNetwork(self, exec_function_dbconnect, exec_function):
 
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         #vpsConn = vps.VMFunc("1234,1,status\n")
         v = vps.VMFunc()
@@ -602,7 +607,7 @@ class TestNetwork(unittest.TestCase):
     @patch('modules.vps.VMFunc.execcmd')
     def test_get_status(self, exec_function_dbconnect, exec_function):
 
-        database.DatabaseVPS.mysql.connector.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         #vpsConn = vps.VMFunc("1234,1,status\n")
 
