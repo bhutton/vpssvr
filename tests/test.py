@@ -31,7 +31,9 @@ class TestStatus(unittest.TestCase):
         assert(d.get_database_connection_status() == True)
 
     # modify test for database exception!!!
-    def test_database_connectivity(self):
+    @patch('modules.database.DatabaseNetwork')
+    def test_database_connectivity(self, exec_function_database):
+        exec_function_database.return_value.get_database_connection_status.return_value = False
         m = database.DatabaseNetwork()
         assert(m.get_database_connection_status() == False)
 
