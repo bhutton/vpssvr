@@ -410,13 +410,11 @@ class TestSnapShots(unittest.TestCase):
         assert(v.takeSnapshot(1,'') == snapshotReturnValue)
 
 
-    '''@patch('subprocess.Popen')
-    @patch('modules.database.DatabaseVPS')
+    @patch('subprocess.Popen')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_listSnapshot(
             self,
             exec_function_checkSecurity,
-            exec_function_dbconnect,
             exec_function_subprocess_Popen):
 
         process_mock = mock.Mock()
@@ -424,22 +422,17 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
-
         exec_function_subprocess_Popen.return_value = process_mock
 
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,listSnapshot")
+        v = vps.VMFunc()
+        assert(v.listSnapshot(1) == 'my snapshot list')
 
-        assert vpsConn.executeCommand() == 'my snapshot list'
-        '''
 
-    '''@patch('subprocess.Popen')
-    @patch('modules.database.DatabaseVPS')
+    @patch('subprocess.Popen')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_restoreSnapshot(
             self,
             exec_function_checkSecurity,
-            exec_function_dbconnect,
             exec_function_subprocess_Popen):
 
         process_mock = mock.Mock()
@@ -447,23 +440,17 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
-
         exec_function_subprocess_Popen.return_value = process_mock
 
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,restoreSnapshot")
-
-        assert vpsConn.executeCommand() == 'Snapshot Restored'
-        '''
+        v = vps.VMFunc()
+        assert(v.restoreSnapshot(1,'') == 'Snapshot Restored')
 
 
-    '''@patch('subprocess.Popen')
-    @patch('modules.database.DatabaseVPS')
+    @patch('subprocess.Popen')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_removeSnapshot(
             self,
             exec_function_checkSecurity,
-            exec_function_dbconnect,
             exec_function_subprocess_Popen):
 
         process_mock = mock.Mock()
@@ -471,14 +458,11 @@ class TestSnapShots(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
-
         exec_function_subprocess_Popen.return_value = process_mock
 
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,removeSnapshot")
+        v = vps.VMFunc()
+        assert(v.removeSnapshot(1,'') == 'Snapshot Removed')
 
-        assert vpsConn.executeCommand() == 'Snapshot Removed'
-        '''
 
 
 class TestNetwork(unittest.TestCase):
