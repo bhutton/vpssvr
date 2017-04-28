@@ -37,51 +37,43 @@ class TestStatus(unittest.TestCase):
 
     @patch('flaskext.mysql.MySQL.connect')
     def test_get_interface(self, exec_function_connect):
-        #mysql_connector.return_value.connect.return_value
-        #exec_function_connect.connector.return_value.cursor.return_value.fetchall.return_value = [1,'tue-23-2000',3]
-        exec_function_connect.return_value.connect.return_value = None
-        #exec_function_connect.connect.return_value.cursor.return_value.fetchall.return_value = [1,'tue-23-2000',3]
+        exec_function_connect.return_value.\
+            cursor.return_value.\
+            fetchall.return_value = [1, 'tue-23-2000', 3]
         m = database.DatabaseNetwork()
-        exec_function_connect.connect.return_value.cursor.return_value.fetchall.return_value = [1, 'tue-23-2000', 3]
-        print m.get_interface()
-        #assert (len(m.get_interface()) > 0)
+        assert (len(m.get_interface()) > 0)
 
-    '''@patch('flaskext.mysql.MySQL.connect')
+    @patch('flaskext.mysql.MySQL.connect')
     def test_get_traffic_data(self, exec_function_connect):
-        m = modules.database.DatabaseNetwork()
-        exec_function_connect.connect.return_value. \
+        m = database.DatabaseNetwork()
+        exec_function_connect.return_value. \
             cursor.return_value. \
             fetchall.return_value = [1,3,4]
-        assert(len(m.get_traffic_data(1)) > 0)'''
+        assert(len(m.get_traffic_data(1)) > 0)
 
     # Test NetStatus Module via the Execute Command control function
-    '''@patch('modules.database.DatabaseVPS')
+
     @patch('modules.vps.VMFunc.execcmd')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_execute_command_netStatus(
             self,
-            exec_function_dbconnect,
             exec_function_checkSecurity,
             exec_function_execcmd):
 
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
+        exec_function_checkSecurity.return_value = 'Pass'
+        v = vps.VMFunc()
 
         # Check that tap interface associated with VM is UP
-        modules.vps.VMFunc.execcmd.return_value = 'tap1: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
-        modules.vps.VMFunc.checkSecurity.return_value = 'Pass'
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,netStatus")
-        assert vpsConn.executeCommand() == 'UP'
+        exec_function_execcmd.return_value = 'tap1: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
+        assert(v.getNetStatus(1) == 'UP')
 
         # Check that tap interface associated with VM is DOWN
-        modules.vps.VMFunc.execcmd.return_value = ''
-        modules.vps.VMFunc.checkSecurity.return_value = 'Pass'
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,netStatus")
-        assert vpsConn.executeCommand() == 'DOWN'
-    '''
+        exec_function_execcmd.return_value = ''
+        assert (v.getNetStatus(1) == 'DOWN')
 
 
 class TestStartStop(unittest.TestCase):
-    '''@patch('modules.database.DatabaseVPS')
+    @patch('modules.database.DatabaseVPS')
     @patch('modules.database.DatabaseVPS.stopConsole')
     @patch('modules.database.DatabaseVPS.stopCommand')
     @patch('modules.database.DatabaseVPS.startCommand')
@@ -98,18 +90,20 @@ class TestStartStop(unittest.TestCase):
             exec_function_stopCommand,
             exec_function_stopConsole):
 
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
+        #database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
         # Starting a VPS
-        modules.database.DatabaseVPS.get_vps_details.return_value = '1'
-        modules.database.DatabaseVPS.startCommand.return_value = '/usr/bin/sh this command'
+        database.DatabaseVPS.get_vps_details.return_value = '1'
+        database.DatabaseVPS.startCommand.return_value = '/usr/bin/sh this command'
 
-        modules.vps.VMFunc.execbhyve.return_value = ''
-        modules.vps.VMFunc.checkSecurity.return_value = 'Pass'
+        vps.VMFunc.execbhyve.return_value = ''
+        vps.VMFunc.checkSecurity.return_value = 'Pass'
 
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,start")
-        assert vpsConn.executeCommand() == 'Started VPS 1\n'
-    '''
+        #vpsConn = vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,start")
+        v = vps.VMFunc()
+        assert(v.start(1) == 'Started VPS 1\n')
+        #assert vpsConn.executeCommand() == 'Started VPS 1\n'
+
 
     #
     # Stopping a VPS
