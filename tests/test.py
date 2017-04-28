@@ -74,64 +74,42 @@ class TestStatus(unittest.TestCase):
 
 class TestStartStop(unittest.TestCase):
     @patch('modules.database.DatabaseVPS')
-    @patch('modules.database.DatabaseVPS.stopConsole')
-    @patch('modules.database.DatabaseVPS.stopCommand')
-    @patch('modules.database.DatabaseVPS.startCommand')
-    @patch('modules.database.DatabaseVPS.get_vps_details')
     @patch('modules.vps.VMFunc.execbhyve')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_start(
             self,
-            exec_function_dbconnect,
             exec_function_checkSecurity,
             exec_function_execbhyve,
-            exec_function_get_vps_details,
-            exec_function_startCommand,
-            exec_function_stopCommand,
-            exec_function_stopConsole):
+            exec_function_dbconnect):
 
-        #database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
+        exec_function_dbconnect.get_vps_details.return_value = '1'
+        exec_function_dbconnect.startCommand.return_value = '/usr/bin/sh this command'
+        exec_function_execbhyve.return_value = ''
+        exec_function_checkSecurity.return_value = 'Pass'
 
-        # Starting a VPS
-        database.DatabaseVPS.get_vps_details.return_value = '1'
-        database.DatabaseVPS.startCommand.return_value = '/usr/bin/sh this command'
-
-        vps.VMFunc.execbhyve.return_value = ''
-        vps.VMFunc.checkSecurity.return_value = 'Pass'
-
-        #vpsConn = vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,start")
         v = vps.VMFunc()
         assert(v.start(1) == 'Started VPS 1\n')
-        #assert vpsConn.executeCommand() == 'Started VPS 1\n'
 
 
     #
     # Stopping a VPS
     #
     @patch('modules.database.DatabaseVPS')
-    @patch('modules.database.DatabaseVPS.stopConsole')
-    @patch('modules.database.DatabaseVPS.stopCommand')
-    @patch('modules.database.DatabaseVPS.get_vps_details')
     @patch('modules.vps.VMFunc.execbhyve')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_stop(
             self,
-            exec_function_dbconnect,
             exec_function_checkSecurity,
             exec_function_execbhyve,
-            exec_function_get_vps_details,
-            exec_function_stopCommand,
-            exec_function_stopConsole):
-
-        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
+            exec_function_dbconnect):
 
         # Stopping a VPS
-        database.DatabaseVPS.get_vps_details.return_value = '1'
-        database.DatabaseVPS.stopCommand.return_value = '/usr/bin/sh this command'
-        database.DatabaseVPS.stopConsole.return_value = '/usr/bin/sh this command'
+        exec_function_dbconnect.get_vps_details.return_value = '1'
+        exec_function_dbconnect.stopCommand.return_value = '/usr/bin/sh this command'
+        exec_function_dbconnect.stopConsole.return_value = '/usr/bin/sh this command'
 
-        vps.VMFunc.execbhyve.return_value = ''
-        vps.VMFunc.checkSecurity.return_value = 'Pass'
+        exec_function_execbhyve.return_value = ''
+        exec_function_checkSecurity.return_value = 'Pass'
 
         v = vps.VMFunc()
         assert(v.stop(1) == "Stopped VPS 1\n")
@@ -196,7 +174,6 @@ class TestCreate(unittest.TestCase):
     def altPOpen(self):
         return None
 
-    '''@patch('modules.database.DatabaseVPS.getImage')
     @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
@@ -206,25 +183,20 @@ class TestCreate(unittest.TestCase):
             exec_function_checkSecurity,
             exec_function_dbconnect,
             exec_function_subprocess_Popen,
-            exec_function_genscript,
-            getImageMock):
+            exec_function_genscript):
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'error')}
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_genscript.return_value = 1
-
         exec_function_subprocess_Popen.return_value = process_mock
 
-
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,createdisk")
-        assert vpsConn.executeCommand() == 'Create Disk for VPS 1\n'
-        '''
+        v = vps.VMFunc()
+        assert(v.createDiskImg(1) == 'Create Disk for VPS 1\n')
 
 
 class TestDelete(unittest.TestCase):
@@ -245,21 +217,15 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
-
         exec_function_genscript.return_value = None
 
-        #vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
         v = vps.VMFunc()
         assert(v.deleteDisk(1) == 'Disk 1 Delete\n')
 
-        #assert vpsConn.executeCommand() == 'Disk 1 Delete\n'
 
-
-    '''@patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
@@ -267,25 +233,22 @@ class TestDelete(unittest.TestCase):
             self,
             exec_function_checkSecurity,
             exec_function_dbconnect,
-            exec_function_subprocess_Popen,
-            exec_function_genscript):
+            exec_function_subprocess_Popen):
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'error')}
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
 
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
+        v = vps.VMFunc()
+        assert(v.deleteDisk(1) == 'An error occurred generating script')
 
-        assert vpsConn.executeCommand() == 'An error occurred generating script'
-    '''
 
-    '''@patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
@@ -293,27 +256,23 @@ class TestDelete(unittest.TestCase):
             self,
             exec_function_checkSecurity,
             exec_function_dbconnect,
-            exec_function_subprocess_Popen,
-            exec_function_genscript):
+            exec_function_subprocess_Popen):
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'error')}
         process_mock.configure_mock(**attrs)
 
-
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
         exec_function_subprocess_Popen.return_value = -1
 
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
+        v = vps.VMFunc()
+        assert(v.deleteDisk(1) == 'Delete disk failed')
 
-        assert vpsConn.executeCommand() == 'Delete disk failed'
-    '''
 
-    '''@patch('modules.vps.VMFunc.generateScript')
+    @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
@@ -329,21 +288,18 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
+        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 999
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
-
         exec_function_subprocess_Popen.return_value = process_mock
-
         exec_function_genscript.return_value = None
-
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,deletedisk")
         exec_function_dbconnect().getImage.return_value = 999
 
-        assert vpsConn.executeCommand() == 'Error: no image found'
-    '''
+        v = vps.VMFunc()
+        assert(v.deleteDisk(1) == 'Error: no image found')
 
-    '''@patch('os.path.exists')
+
+    @patch('os.path.exists')
     @patch('os.rename')
     @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
@@ -359,28 +315,22 @@ class TestDelete(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
         exec_function_dbconnect().getImage.return_value = 999
         exec_function_os_rename.return_value = process_mock
         exec_function_os_path_exists.return_value = process_mock
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
-
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,delete")
-
-        assert vpsConn.executeCommand() == None
-        '''
+        v = vps.VMFunc()
+        assert(v.delete(1) == None)
 
 
 class TestConsole(unittest.TestCase):
 
     @patch('subprocess.Popen')
-    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_restartConsole(
             self,
             exec_function_checkSecurity,
-            exec_function_dbconnect,
             exec_function_subprocess_Popen):
 
         process_mock = mock.Mock()
@@ -388,13 +338,8 @@ class TestConsole(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
-
         exec_function_subprocess_Popen.return_value = process_mock
 
-        #vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,restartConsole")
-
-        #assert vpsConn.executeCommand() == "Terminal Restarted\n"
         v = vps.VMFunc()
         assert(v.restartConsole(1) == 'Terminal Restarted\n')
 
@@ -418,33 +363,15 @@ class TestUpdateVPS(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
-
-        database.DatabaseVPS.get_vps_details.return_value = ''
-        database.DatabaseVPS.get_vps_id.return_value = '1'
-        database.DatabaseVPS.get_vps_name.return_value = 'MyTestVPS'
-        database.DatabaseVPS.get_vps_memory.return_value = '512'
-        database.DatabaseVPS.getConsole.return_value = '1'
-        database.DatabaseVPS.getStartScript.return_value = '/home/startme.sh'
-        database.DatabaseVPS.getStopScript.return_value = '/home/stopme.sh'
-        database.DatabaseVPS.get_disks_details_from_database.return_value = '234'
-        database.DatabaseVPS.get_devices.return_value = '1'
-
         exec_function_dbconnect().getImage.return_value = 1
-        exec_function_dbconnect().getPath.return_value = '/usr/mypath'
-
         exec_function_subprocess_Popen.return_value = process_mock
         exec_function_genscript.return_value = None
 
-
-        #vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,updatevps")
         v = vps.VMFunc()
         assert(v.updateVPS(1) == 'VPS 1 Update\n')
 
-        #assert vpsConn.executeCommand() == 'VPS 1 Update\n'
 
-
-    '''@patch('modules.vps.VMFunc.generateScript')
+    @patch('modules.vps.VMFunc.generateScript')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
@@ -460,54 +387,27 @@ class TestUpdateVPS(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        modules.database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
 
-        modules.database.DatabaseVPS.get_vps_details.return_value = ''
-        modules.database.DatabaseVPS.get_vps_id.return_value = '1'
-        modules.database.DatabaseVPS.get_vps_name.return_value = 'MyTestVPS'
-        modules.database.DatabaseVPS.get_vps_memory.return_value = '512'
-        modules.database.DatabaseVPS.getConsole.return_value = '1'
-        modules.database.DatabaseVPS.getStartScript.return_value = '/home/startme.sh'
-        modules.database.DatabaseVPS.getStopScript.return_value = '/home/stopme.sh'
-        modules.database.DatabaseVPS.get_disks_details_from_database.return_value = '234'
-        modules.database.DatabaseVPS.get_devices.return_value = '1'
+        v = vps.VMFunc()
+        assert(v.updateVPS(1) == 'Error: no image specified')
 
-        exec_function_dbconnect().getImage.return_value = 0
-        exec_function_dbconnect().getPath.return_value = '/usr/mypath'
-
-        exec_function_subprocess_Popen.return_value = process_mock
-        exec_function_genscript.return_value = None
-
-
-        vpsConn = modules.vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,updatevps")
-
-        assert vpsConn.executeCommand() == 'Error: no image specified'
-        '''
 
 
 class TestSnapShots(unittest.TestCase):
-    @patch('flaskext.mysql.MySQL.connect')
-    @patch('modules.database.DatabaseVPS')
     @patch('modules.vps.VMFunc.checkSecurity')
     def test_executeCommand_updateVPS_takeSnapshot(
             self,
-            exec_function_checkSecurity,
-            exec_function_dbconnect,
-            exec_function_connect):
+            exec_function_checkSecurity):
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'success')}
         process_mock.configure_mock(**attrs)
 
         exec_function_checkSecurity.return_value = 'Pass'
-        database.DatabaseVPS.flaskext.mysql.MySQL.connect.connect.return_value = None
-
         snapshotReturnValue = "Snapshot name = " + str(time.time())
 
-        #vpsConn = vps.VMFunc("vdsoiu543um89dsf89y7895y7327@#@#--0934589,1,takeSnapshot")
         v = vps.VMFunc()
         assert(v.takeSnapshot(1,'') == snapshotReturnValue)
-        #assert vpsConn.executeCommand() == snapshotReturnValue
 
 
     '''@patch('subprocess.Popen')
