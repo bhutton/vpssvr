@@ -144,10 +144,12 @@ class VMFunc:
         return (self.status)
 
     def getNetStatus(self, id):
-        vps = database.DatabaseVPS()
-        devices = vps.get_devices(id)
+        #vps = database.DatabaseVPS()
+        #devices = vps.get_devices(id)
 
         output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
+
+        print output
 
         if (output == ""):
             output = "DOWN"
@@ -157,9 +159,7 @@ class VMFunc:
         return output
 
     def stopNetwork(self, id):
-        output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' down')
-
-        return output
+        return self.execcmd(IFConfig + ' tap' + format(id) + ' down')
 
     def startNetwork(self, id):
         output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' up')
@@ -173,7 +173,6 @@ class VMFunc:
         return self.id
 
     def logentry(self, data):
-
         try:
             f = open(LogFile, 'a')
             f.write(data)
@@ -182,7 +181,6 @@ class VMFunc:
             return "Error with ".format(LogFile)
 
     def execbhyve(self, command, ID):
-
         print "ID = {}".format(ID)
         self.command = command
         self.id = ID
