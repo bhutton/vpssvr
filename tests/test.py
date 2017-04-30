@@ -306,7 +306,7 @@ class TestUpdateVPS(unittest.TestCase):
         exec_function_genscript.return_value = None
 
         v = vps.VMFunc()
-        assert(v.updateVPS(1) == 'VPS 1 Update\n')
+        assert(v.updateVPS(1) == 'VPS 1 Updated\n')
 
 
     @patch('subprocess.Popen')

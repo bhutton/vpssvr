@@ -106,10 +106,11 @@ class DatabaseVPS:
         return (VPS[0])
 
     def get_disk(self, id):
-        #cnx = mysql.connector.connect(**config)
-        #cursor = cnx.cursor()
-        self.cnx.cursor.execute("select size,vps_id from disk where id=%s", (id,))
-        return self.cnx.cursor.fetchone()
+        self.cnx = mysql.connect()
+        self.cursor = self.cnx.cursor()
+
+        self.cursor.execute("select size,vps_id from disk where id=%s", (id,))
+        return self.cursor.fetchone()
 
     def get_disks_details_from_database(self, id):
 

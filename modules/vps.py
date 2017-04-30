@@ -112,18 +112,26 @@ class VMFunc:
                 self.status = self.createDiskImg(self.getID())
             elif (self.getCommand() == "deletedisk"):
                 self.status = self.deleteDisk(self.getID())
+
             elif (self.getCommand() == "delete"):
                 self.status = self.delete(self.getID())
+
             elif (self.getCommand() == "restartConsole"):
                 self.status = self.restartConsole(self.getID())
+
             elif (self.getCommand() == "status"):
                 self.status = self.checkStatus(self.getID())
+
             elif (self.getCommand() == "updatevps"):
                 self.status = self.updateVPS(self.getID())
+
+
             elif (self.getCommand() == "takeSnapshot"):
                 self.status = self.takeSnapshot(self.getID(), self.snapShot)
+
             elif (self.getCommand() == "listSnapshot"):
                 self.status = self.listSnapshot(self.getID())
+
             elif (self.getCommand() == "restoreSnapshot"):
                 self.status = self.restoreSnapshot(self.getID(), self.snapShot)
             elif (self.getCommand() == "removeSnapshot"):
@@ -149,7 +157,7 @@ class VMFunc:
 
         output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
 
-        print output
+        #print output
 
         if (output == ""):
             output = "DOWN"
@@ -592,7 +600,7 @@ class VMFunc:
         self.generateScript(StartScript, StartScriptData)
         self.generateScript(StopScript, StopScriptData)
 
-        return "VPS {} Update\n".format(vps_id)
+        return "VPS {} Updated\n".format(vps_id)
 
     def createDiskImg(self, id):
 
