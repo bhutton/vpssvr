@@ -193,19 +193,20 @@ class VMFunc:
         self.command = command
         self.id = ID
 
-        pid = os.fork()
+        try:
+            pid = os.fork()
 
-        if (pid == 0):
-            self.id = RootPath + self.id
-            args = ("-c", self.command, self.id)
-
-            proc = Popen(['/bin/sh', '-c', self.command, '999'],
-                         cwd=self.id,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT,
-                         close_fds=True)
-
-            os._exit(0)
+            if (pid == 0):
+                self.id = RootPath + self.id
+                args = ("-c", self.command, self.id)
+                proc = Popen(['/bin/sh', '-c', self.command, '999'],
+                             cwd=self.id,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             close_fds=True)
+                os._exit(0)
+        except:
+            return "failed to execute bhyve command"
 
     def execcmd(self, cmd):
         proc = subprocess.Popen(['/bin/sh', '-c', cmd],
@@ -324,13 +325,15 @@ class VMFunc:
 
         if (os.path.exists("/dev/vmm/" + str(vps_id))):
             self.status = "Running"
-            #return "Running"
+            return "Running"
         else:
             if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
                 return "Installing"
 
             self.status = "Stopped"
             return "Stopped"
+
+
 
     def start(self, id):
         VPS_DB = database.DatabaseVPS()
