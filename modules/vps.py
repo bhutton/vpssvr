@@ -318,18 +318,17 @@ class VMFunc:
         VPS_Conn = database.DatabaseVPS()
         VPS = VPS_Conn.get_vps_details(self.id)
 
-        vps_id = str(VPS[0])
         vps_startscript = VPS[5]
 
         if (vps_startscript == ""): vps_name = str(self.id)
-
-        if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
-            return "Installing"
 
         if (os.path.exists("/dev/vmm/" + str(vps_id))):
             self.status = "Running"
             #return "Running"
         else:
+            if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
+                return "Installing"
+
             self.status = "Stopped"
             return "Stopped"
 

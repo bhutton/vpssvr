@@ -6,6 +6,8 @@ import base64
 import json
 from flask import Flask, jsonify, abort, make_response
 from flask import appcontext_pushed, g
+from mock import patch
+import mock
 
 
 class VPSServerTestCase(unittest.TestCase):
@@ -34,12 +36,53 @@ class VPSServerTestCase(unittest.TestCase):
         rv = self.app.get('/vpssvr/api/v1.0/tasks/status/878')
         assert b'Unauthorized' in rv.data
 
-    def test_get_status(self):
+    @patch('modules.vps.VMFunc.execcmd')
+    @patch('modules.database.DatabaseVPS')
+    @patch('os.path.exists')
+    def test_get_status(self,
+            exec_function_ospathexists,
+            exec_function_dbconnect,
+            exec_function):
+        exec_function_dbconnect.return_value.get_vps_details.return_value = [1,2,3,4,5,6,7,8]
+        exec_function_dbconnect().get_vps_id.return_value = '1'
+        exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
+        exec_function_dbconnect().get_vps_memory.return_value = '512'
+        exec_function_dbconnect().getConsole.return_value = 1
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
+        exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
+        exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
+        exec_function_ospathexists('/Users/ben/repos/vpssvr').return_value = ''
+        exec_function.return_value = 'tap112: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
+
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('output', 'success')}
+        process_mock.configure_mock(**attrs)
+
+        exec_function_ospathexists('/dev/vmm/1').return_value = process_mock
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/status/878',
                                  'GET','miguel','python')
-        assert b'Stopped' in rv.data
+        assert b'Running' in rv.data
 
-    def test_start_vps(self):
+    @patch('os.path.exists')
+    @patch('modules.database.DatabaseVPS')
+    @patch('flaskext.mysql.MySQL.connect')
+    def test_start_vps(self,
+                        mysql_connector,exec_function_dbconnect,
+                        exec_function_ospathexists):
+        mysql_connector.return_value.connect.return_value = None
+        exec_function_dbconnect().get_vps_details.return_value = ''
+        exec_function_dbconnect().get_vps_id.return_value = '1'
+        exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
+        exec_function_dbconnect().get_vps_memory.return_value = '512'
+        exec_function_dbconnect().getConsole.return_value = 1
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
+        exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
+        exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
+        exec_function_ospathexists('/Users/ben/repos/vpssvr').return_value = ''
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/start/878',
                                  'GET', 'miguel', 'python')
         assert b'Started' in rv.data
@@ -49,7 +92,24 @@ class VPSServerTestCase(unittest.TestCase):
                                  'GET', 'miguel', 'python')
         assert b'Stopped' in rv.data
 
-    def test_create_vps(self):
+    @patch('os.path.exists')
+    @patch('modules.database.DatabaseVPS')
+    @patch('flaskext.mysql.MySQL.connect')
+    def test_create_vps(self,
+                        mysql_connector,exec_function_dbconnect,
+                        exec_function_ospathexists):
+        mysql_connector.return_value.connect.return_value = None
+        exec_function_dbconnect().get_vps_details.return_value = ''
+        exec_function_dbconnect().get_vps_id.return_value = '1'
+        exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
+        exec_function_dbconnect().get_vps_memory.return_value = '512'
+        exec_function_dbconnect().getConsole.return_value = 1
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
+        exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
+        exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
+        exec_function_ospathexists('/Users/ben/repos/vpssvr').return_value = ''
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/createvps/878',
                                  'GET', 'miguel', 'python')
         assert b'Created' in rv.data
