@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import os
 from flask import Flask
 from flaskext.mysql import MySQL
@@ -11,7 +11,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 mysql = MySQL()
 
 # Get MySQL configurations from configuration.cfg
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read("{}/../configuration.cfg".format(dir_path))
 app.config['MYSQL_DATABASE_USER']       = Config.get('Database','database_user')
 app.config['MYSQL_DATABASE_PASSWORD']   = Config.get('Database','database_password')
@@ -26,7 +26,7 @@ class DatabaseNetwork:
             self.cursor = self.cnx.cursor()
             self.database_connected = True
         except:
-            print "error connecting to database"
+            print("error connecting to database")
             self.database_connected = False
 
     def __exit__(self):
@@ -36,7 +36,7 @@ class DatabaseNetwork:
             self.cursor = self.cnx.cursor()
             self.cnx.close()
         except:
-            print "Error closing database"
+            print("Error closing database")
 
     def get_database_connection_status(self):
         return self.database_connected
@@ -177,14 +177,14 @@ class DatabaseVPS:
         vps_startscript = self.vps[6]
         vps_stopscript = self.vps[7]
 
-        print "vps_path = {}".format(vps_path)
+        print("vps_path = {}".format(vps_path))
 
         if (vps_startscript == ""): vps_startscript = "start.sh"
         if (vps_path == ""): vps_path = RootPath + "/" + vps_id
 
-        print "vps_path = {}".format(vps_path)
+        print("vps_path = {}".format(vps_path))
 
-        print "command = " + str(vps_path) + "/" + vps_startscript
+        print("command = " + str(vps_path) + "/" + vps_startscript)
 
         return ("/bin/sh " + vps_path + "/" + vps_startscript)
 

@@ -21,16 +21,28 @@ class VPSServerTestCase(unittest.TestCase):
 
     def tearDown(self):
         os.close(self.db_fd)
-        os.unlink(vpsserver.app.config['DATABASE'])
+        try:
+            os.unlink(vpsserver.app.config['DATABASE'])
+        except:
+            print('cannot remove')
 
     def open_with_auth(self, url, method, username, password):
+        '''divider = ":"
+        credentials = base64.b64encode(username.encode('ascii') + \
+            
         return self.app.open(url,
              method=method,
              headers={
-                 'Authorization': 'Basic ' + base64.b64encode(username + \
-                                                              ":" + password)
+                 'Authorization': 'Basic ' + base64.b64encode(username.encode('ascii') + \
+                                                              ":" + password.encode('ascii'))
              }
-         )
+         )'''
+
+        headers = {
+            'Authorization': 'Basic %s' % base64.b64encode(b"miguel:python").decode("ascii")
+        }
+
+        return self.app.get(url, headers=headers)
 
     def test_unauthorised_access(self):
         rv = self.app.get('/vpssvr/api/v1.0/tasks/status/878')
@@ -83,7 +95,7 @@ class VPSServerTestCase(unittest.TestCase):
         exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
         exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
         exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
-        #exec_function_ospathexists('/Users/ben/repos/vpssvr').return_value = ''
+        exec_function_ospathexists('/Users/ben/repos/vpssvr').return_value = ''
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'success')}
@@ -97,7 +109,7 @@ class VPSServerTestCase(unittest.TestCase):
 
         assert b'Started VPS 878' in rv.data
 
-    '''@patch('os.path.exists')
+    @patch('os.path.exists')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
     @patch('flaskext.mysql.MySQL.connect')
@@ -125,7 +137,7 @@ class VPSServerTestCase(unittest.TestCase):
 
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/stop/878',
                                  'GET', 'miguel', 'python')
-        assert b'Stopped' in rv.data'''
+        assert b'Stopped' in rv.data
 
     @patch('os.path.exists')
     @patch('modules.database.DatabaseVPS')

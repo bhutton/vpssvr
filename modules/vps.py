@@ -3,7 +3,7 @@ from subprocess import check_output
 import mysql.connector
 import os, subprocess
 import shutil
-import ConfigParser
+import configparser
 import subprocess
 import modules.database as database
 import time
@@ -11,7 +11,7 @@ import time
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Get VPS configurations from configuration.cfg
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read("{}/../configuration.cfg".format(dir_path))
 
 ShellInABoxPref = Config.get('Global', 'ShellInABoxPref')
@@ -167,7 +167,8 @@ class VMFunc:
         return output
 
     def stopNetwork(self, id):
-        return self.execcmd(IFConfig + ' tap' + format(id) + ' down')
+        output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' down')
+        return output
 
     def startNetwork(self, id):
         output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' up')
@@ -189,7 +190,7 @@ class VMFunc:
             return "Error with ".format(LogFile)
 
     def execbhyve(self, command, ID):
-        print "ID = {}".format(ID)
+        print("ID = {}".format(ID))
         self.command = command
         self.id = ID
 

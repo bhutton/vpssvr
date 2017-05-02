@@ -128,12 +128,12 @@ def get_network_status(vps_id):
 @app.route('/vpssvr/api/v1.0/tasks/netStop/<int:vps_id>', methods=['GET'])
 @auth.login_required
 def get_stop_network(vps_id):
-    return jsonify({'status': v.stopNetwork(vps_id)})
+    return jsonify({'status': v.stopNetwork(vps_id).decode('utf-8')})
 
 @app.route('/vpssvr/api/v1.0/tasks/netStart/<int:vps_id>', methods=['GET'])
 @auth.login_required
 def get_start_network(vps_id):
-    return jsonify({'status': v.startNetwork(vps_id)})
+    return jsonify({'status': v.startNetwork(vps_id).decode('utf-8')})
 
 if __name__ == '__main__':
     app.run(debug=True)
