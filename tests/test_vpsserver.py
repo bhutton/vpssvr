@@ -3,9 +3,9 @@ import vpsserver
 import unittest
 import tempfile
 import base64
-import json
-from flask import Flask, jsonify, abort, make_response
-from flask import appcontext_pushed, g
+#import json
+#from flask import Flask, jsonify, abort, make_response
+#from flask import appcontext_pushed, g
 from mock import patch
 import mock
 
@@ -253,10 +253,16 @@ class VPSServerTestCase(unittest.TestCase):
 
         assert b'Snapshot name' in rv.data
 
-    '''def test_restore_snapshot(self):
+    @patch('subprocess.Popen')
+    def test_restore_snapshot(self, exec_function_popen):
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('Snapshot name', 'success')}
+        process_mock.configure_mock(**attrs)
+        exec_function_popen.return_value = process_mock
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/restoreSnapshot/878',
                                  'GET', 'miguel', 'python')
-        assert b'Snapshot name' in rv.data'''
+        assert b'Snapshot name' in rv.data
 
     def test_remove_snapshot(self):
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/removeSnapshot/878',
