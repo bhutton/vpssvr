@@ -197,7 +197,6 @@ class VPSServerTestCase(unittest.TestCase):
         mysql_connector.return_value.connect.return_value = None
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
-        print(rv.data)
         assert b'Disk 878 Delete' in rv.data
 
     @patch('flaskext.mysql.MySQL.connect')
@@ -205,7 +204,6 @@ class VPSServerTestCase(unittest.TestCase):
         mysql_connector.return_value.connect.return_value = None
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
-        print(rv.data)
         assert(b'An error occurred generating script' in rv.data)
 
     def test_delete(self):
@@ -218,10 +216,25 @@ class VPSServerTestCase(unittest.TestCase):
                                  'GET', 'miguel', 'python')
         assert b'Terminal Restarted' in rv.data
 
-    '''def test_updatevps(self):
+    @patch('modules.database.DatabaseVPS')
+    @patch('flaskext.mysql.MySQL.connect')
+    def test_updatevps(self, mysql_connector, exec_function_dbconnect):
+        mysql_connector.return_value.connect.return_value = None
+        exec_function_dbconnect().get_vps_details.return_value = ''
+        exec_function_dbconnect().get_vps_id.return_value = '1'
+        exec_function_dbconnect().get_disk.return_value = [1, 1, 3, 4]
+        exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
+        exec_function_dbconnect().get_vps_memory.return_value = '512'
+        exec_function_dbconnect().getConsole.return_value = 1
+        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
+        exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
+        exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/updatevps/878',
                                  'GET', 'miguel', 'python')
-        assert b'VPS 878 Updated' in rv.data'''
+        print(rv.data)
+        assert b'VPS 878 Updated' in rv.data
 
     def test_take_snapshot(self):
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/takeSnapshot/878',
