@@ -368,6 +368,8 @@ class VMFunc:
         self.file = file
         self.data = data
 
+        print("script = {}".format(self.file))
+
         try:
             f = open(self.file, 'w')
             f.write("#!/bin/sh\n")
@@ -693,7 +695,7 @@ class VMFunc:
         else:
             VPSPath = Path
 
-        if (Image == self.FreeBSD):
+        '''if (Image == self.FreeBSD):
             SrcImg = SrcImgFreeBSD
         elif (Image == self.Ubuntu):
             SrcImg = SrcImgUbuntu
@@ -702,7 +704,7 @@ class VMFunc:
         elif (Image == self.Win10):
             SrcImg = SrcImgWin10
         else:
-            return "Error: no image found"
+            return "Error: no image found"'''
 
         delete_disk = "rm {}/{}".format(VPSPath, id)
 
