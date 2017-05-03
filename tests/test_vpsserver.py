@@ -241,10 +241,17 @@ class VPSServerTestCase(unittest.TestCase):
                                  'GET', 'miguel', 'python')
         assert b'Snapshot name' in rv.data
 
-    '''def test_list_snapshot(self):
+    @patch('subprocess.Popen')
+    def test_list_snapshot(self, exec_function_popen):
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': ('Snapshot name', 'success')}
+        process_mock.configure_mock(**attrs)
+        exec_function_popen.return_value = process_mock
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/listSnapshot/878',
                                  'GET', 'miguel', 'python')
-        assert b'Snapshot name' in rv.data'''
+
+        assert b'Snapshot name' in rv.data
 
     '''def test_restore_snapshot(self):
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/restoreSnapshot/878',
