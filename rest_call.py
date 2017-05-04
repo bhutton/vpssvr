@@ -12,9 +12,7 @@ class TestRest:
         headers = {
             'Authorization': 'Basic %s' % base64.b64encode(b"miguel:python").decode("ascii")
         }
-        #ret = requests.post(url, params=parameters, header=head)
         return requests.get(url, headers=headers)
-        #return requests.get(url, auth=HTTPBasicAuth(username,password))
 
     def unauthorised_access(self):
         rv = self.open_with_auth('http://localhost:5000/vpssvr/api/v1.0/tasks/statustest/1',

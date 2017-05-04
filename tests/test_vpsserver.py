@@ -9,6 +9,7 @@ import base64
 from mock import patch
 import mock
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 class VPSServerTestCase(unittest.TestCase):
 
@@ -185,8 +186,10 @@ class VPSServerTestCase(unittest.TestCase):
                          mysql_connector,
                          exec_function_dbconnect,
                          exec_function_fileopen):
+
         exec_function_dbconnect().get_disk.return_value = [1, 1, 3, 4]
-        exec_function_dbconnect().getPath.return_value = "/Users/bhutton/repo/vpsman-dev/"
+        exec_function_dbconnect().getPath.return_value = \
+            dir_path + '/../../vpsman-dev'
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'success')}
@@ -197,6 +200,7 @@ class VPSServerTestCase(unittest.TestCase):
         mysql_connector.return_value.connect.return_value = None
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
+        print(rv.data)
         assert b'Disk 878 Delete' in rv.data
 
     @patch('flaskext.mysql.MySQL.connect')
