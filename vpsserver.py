@@ -46,6 +46,11 @@ def get_password(username):
 def unauthorized():
     return make_response(jsonify({'error': 'Unauthorized access'}), 401)
 
+@app.route('/vpssvr/api/v1.0/tasks/statustest/<int:vps_id>', methods=['GET'])
+@auth.login_required
+def get_status_test(vps_id):
+    return jsonify({'status': 'Running'})
+
 
 @app.route('/vpssvr/api/v1.0/tasks/status/<int:vps_id>', methods=['GET'])
 @auth.login_required

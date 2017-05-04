@@ -67,7 +67,7 @@ class DatabaseVPS:
     vps = []
 
     def __init__(self):
-        configuration_settings = ConfigParser.ConfigParser()
+        configuration_settings = configparser.ConfigParser()
         configuration_settings.read("{}/../configuration.cfg".format(dir_path))
 
         configuration_settings = {
