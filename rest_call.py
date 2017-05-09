@@ -17,7 +17,7 @@ class TestRest:
     def unauthorised_access(self):
         rv = self.open_with_auth('http://localhost:5000/vpssvr/api/v1.0/tasks/statustest/1',
                           'GET', 'miguel', 'python')
-        print(rv)
+        print(rv.json())
 
 
 r = TestRest()

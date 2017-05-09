@@ -8,7 +8,7 @@ app.config.from_object(__name__)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-mysql = MySQL()
+
 
 # Get MySQL configurations from configuration.cfg
 Config = configparser.ConfigParser()
@@ -17,12 +17,15 @@ app.config['MYSQL_DATABASE_USER']       = Config.get('Database','database_user')
 app.config['MYSQL_DATABASE_PASSWORD']   = Config.get('Database','database_password')
 app.config['MYSQL_DATABASE_DB']         = Config.get('Database','database_name')
 app.config['MYSQL_DATABASE_HOST']       = Config.get('Database','database_host')
-mysql.init_app(app)
+
+#db_connector = MySQL()
+db_connector = MySQL()
+db_connector.init_app(app)
 
 class DatabaseNetwork:
     def __init__(self):
         try:
-            self.cnx = mysql.connect()
+            self.cnx = db_connector.connect()
             self.cursor = self.cnx.cursor()
             self.database_connected = True
         except:
@@ -31,7 +34,7 @@ class DatabaseNetwork:
 
     def __exit__(self):
         try:
-            self.cnx = mysql.connect()
+            self.cnx = db_connector.connect()
             #self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
             self.cnx.close()
@@ -80,7 +83,7 @@ class DatabaseVPS:
 
         self.root_path = configuration_settings.get('Global', 'RootPath')
 
-        self.cnx = mysql.connect()
+        self.cnx = db_connector.connect()
         #self.cnx = mysql.connector.connect(**configuration_settings)
         self.cursor = self.cnx.cursor()
 
@@ -106,7 +109,7 @@ class DatabaseVPS:
         return (VPS[0])
 
     def get_disk(self, id):
-        self.cnx = mysql.connect()
+        self.cnx = db_connector.connect()
         self.cursor = self.cnx.cursor()
 
         self.cursor.execute("select size,vps_id from disk where id=%s", (id,))
