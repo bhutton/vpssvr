@@ -1,5 +1,6 @@
 import configparser
 import os
+import sqlite3
 from flask import Flask
 from flaskext.mysql import MySQL
 
@@ -8,15 +9,21 @@ app.config.from_object(__name__)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+# Get database configurations from configuration.cfg
+configuration = configparser.ConfigParser()
+configuration.read("{}/../configuration.cfg".format(dir_path))
+database_driver = configuration.get('Database', 'database_driver')
+database_user = configuration.get('Database', 'database_user')
+database_password = configuration.get('Database', 'database_password')
+database_host = configuration.get('Database', 'database_host')
+database_name = configuration.get('Database', 'database_name')
+raise_on_warnings = configuration.get('Database', 'raise_on_warnings')
 
-
-# Get MySQL configurations from configuration.cfg
-Config = configparser.ConfigParser()
-Config.read("{}/../configuration.cfg".format(dir_path))
-app.config['MYSQL_DATABASE_USER']       = Config.get('Database','database_user')
-app.config['MYSQL_DATABASE_PASSWORD']   = Config.get('Database','database_password')
-app.config['MYSQL_DATABASE_DB']         = Config.get('Database','database_name')
-app.config['MYSQL_DATABASE_HOST']       = Config.get('Database','database_host')
+if database_driver is 'mysql':
+    app.config['MYSQL_DATABASE_USER'] = database_user
+    app.config['MYSQL_DATABASE_PASSWORD'] = database_password
+    app.config['MYSQL_DATABASE_DB'] = database_name
+    app.config['MYSQL_DATABASE_HOST'] = database_host
 
 #db_connector = MySQL()
 db_connector = MySQL()
