@@ -145,6 +145,7 @@ class DatabaseVPS:
 
     def db_connect_mysql(self):
         try:
+            #self.cnx = mysql.connector.connect(**configuration_settings)
             self.cnx = db_connector.connect()
             self.cursor = self.cnx.cursor()
             self.database_connected = True
@@ -168,6 +169,9 @@ class DatabaseVPS:
         return self.cursor.fetchall()
 
     def get_vps_id_associated_with_disk(self, id):
+        self.cnx = db_connector.connect()
+        self.cursor = self.cnx.cursor()
+
         self.cursor.execute("select vps_id from disk where id=%s", (id,))
         VPS = self.cursor.fetchone()
 
