@@ -38,13 +38,13 @@ class VPSServerTestCase(unittest.TestCase):
         assert b'Unauthorized' in rv.data
 
     @patch('modules.vps.VMFunc.execcmd')
-    @patch('modules.database.DatabaseVPS')
+    #@patch('modules.database.DatabaseVPS')
     @patch('os.path.exists')
     def test_get_status(self,
             exec_function_ospathexists,
-            exec_function_dbconnect,
+            #exec_function_dbconnect,
             exec_function):
-        exec_function_dbconnect.return_value.get_vps_details.return_value = [1,2,3,4,5,6,7,8]
+        '''exec_function_dbconnect.return_value.get_vps_details.return_value = [1,2,3,4,5,6,7,8]
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
         exec_function_dbconnect().get_vps_memory.return_value = '512'
@@ -53,6 +53,7 @@ class VPSServerTestCase(unittest.TestCase):
         exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
         exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
         exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
+        '''
         exec_function_ospathexists('/Users/ben/repos/vpssvr').return_value = ''
         exec_function.return_value = 'tap112: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
 

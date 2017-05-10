@@ -1,6 +1,6 @@
 import configparser
 import os
-import sqlite3
+import sqlite3 as sqlite
 from flask import Flask
 from flaskext.mysql import MySQL
 
@@ -25,19 +25,19 @@ if database_driver is 'mysql':
     app.config['MYSQL_DATABASE_DB'] = database_name
     app.config['MYSQL_DATABASE_HOST'] = database_host
 
-#db_connector = MySQL()
 db_connector = MySQL()
 db_connector.init_app(app)
 
 class DatabaseNetwork:
     def __init__(self):
-        try:
+        '''try:
             self.cnx = db_connector.connect()
             self.cursor = self.cnx.cursor()
             self.database_connected = True
         except:
             print("error connecting to database")
-            self.database_connected = False
+            self.database_connected = False'''
+        self.db_connection(database_driver)
 
     def __exit__(self):
         try:
@@ -47,6 +47,30 @@ class DatabaseNetwork:
             self.cnx.close()
         except:
             print("Error closing database")
+
+    def db_connection(self, database_driver):
+        if database_driver is 'mysql':
+            return self.db_connect_mysql()
+        if database_driver is 'sqlite':
+            return self.db_connect_sqlite()
+
+    def db_connect_sqlite(self):
+        try:
+            self.cnx = sqlite.connect("/tmp/database.db")
+            self.cnx.row_factory = sqlite.Row
+            self.cursor = self.cnx.cursor()
+            return 'connection successful'
+        except:
+            return 'an error occured'
+
+    def db_connect_mysql(self):
+        try:
+            self.cnx = db_connector.connect()
+            self.cursor = self.cnx.cursor()
+            self.database_connected = True
+        except:
+            self.database_connected = False
+            return "error connecting to database"
 
     def get_database_connection_status(self):
         return self.database_connected
@@ -77,7 +101,15 @@ class DatabaseVPS:
     vps = []
 
     def __init__(self):
-        configuration_settings = configparser.ConfigParser()
+        configuration = configparser.ConfigParser()
+        configuration.read("{}/../configuration.cfg".format(dir_path))
+        database_driver = configuration.get('Database', 'database_driver')
+        database_user = configuration.get('Database', 'database_user')
+        database_password = configuration.get('Database', 'database_password')
+        database_host = configuration.get('Database', 'database_host')
+        database_name = configuration.get('Database', 'database_name')
+        raise_on_warnings = configuration.get('Database', 'raise_on_warnings')
+        '''configuration_settings = configparser.ConfigParser()
         configuration_settings.read("{}/../configuration.cfg".format(dir_path))
 
         configuration_settings = {
@@ -90,9 +122,35 @@ class DatabaseVPS:
 
         self.root_path = configuration_settings.get('Global', 'RootPath')
 
-        self.cnx = db_connector.connect()
+        self.cnx = db_connector.connect()'''
         #self.cnx = mysql.connector.connect(**configuration_settings)
-        self.cursor = self.cnx.cursor()
+        #self.cursor = self.cnx.cursor()
+        self.db_connection(database_driver)
+
+
+    def db_connection(self, database_driver):
+        if database_driver is 'mysql':
+            return self.db_connect_mysql()
+        if database_driver is 'sqlite':
+            return self.db_connect_sqlite()
+
+    def db_connect_sqlite(self):
+        try:
+            self.cnx = sqlite.connect("/tmp/database.db")
+            self.cnx.row_factory = sqlite.Row
+            self.cursor = self.cnx.cursor()
+            return 'connection successful'
+        except:
+            return 'an error occured'
+
+    def db_connect_mysql(self):
+        try:
+            self.cnx = db_connector.connect()
+            self.cursor = self.cnx.cursor()
+            self.database_connected = True
+        except:
+            self.database_connected = False
+            return "error connecting to database"
 
     def get_device(self, id):
         get_device_sql_query = (
