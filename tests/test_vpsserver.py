@@ -70,12 +70,13 @@ class VPSServerTestCase(unittest.TestCase):
     @patch('os.path.exists')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
-    @patch('flaskext.mysql.MySQL.connect')
+    #@patch('flaskext.mysql.MySQL.connect')
     def test_start_vps(self,
-                       mysql_connector,exec_function_dbconnect,
+                       #mysql_connector,
+                       exec_function_dbconnect,
                        exec_function_subprocess_Popen,
                        exec_function_ospathexists):
-        mysql_connector.return_value.connect.return_value = None
+        #mysql_connector.return_value.connect.return_value = None
         exec_function_dbconnect().get_vps_details.return_value = ''
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
@@ -102,9 +103,10 @@ class VPSServerTestCase(unittest.TestCase):
     @patch('os.path.exists')
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
-    @patch('flaskext.mysql.MySQL.connect')
+    #@patch('flaskext.mysql.MySQL.connect')
     def test_stop_vps(self,
-               mysql_connector,exec_function_dbconnect,
+               #mysql_connector,
+                      exec_function_dbconnect,
                exec_function_subprocess_Popen,
                exec_function_ospathexists):
         exec_function_dbconnect().get_vps_details.return_value = ''
@@ -131,11 +133,12 @@ class VPSServerTestCase(unittest.TestCase):
 
     @patch('os.path.exists')
     @patch('modules.database.DatabaseVPS')
-    @patch('flaskext.mysql.MySQL.connect')
+    #@patch('flaskext.mysql.MySQL.connect')
     def test_create_vps(self,
-                        mysql_connector,exec_function_dbconnect,
+                        #mysql_connector,
+                        exec_function_dbconnect,
                         exec_function_ospathexists):
-        mysql_connector.return_value.connect.return_value = None
+        #mysql_connector.return_value.connect.return_value = None
         exec_function_dbconnect().get_vps_details.return_value = ''
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
@@ -153,12 +156,12 @@ class VPSServerTestCase(unittest.TestCase):
 
     @patch('os.path.exists')
     @patch('modules.database.DatabaseVPS')
-    @patch('flaskext.mysql.MySQL.connect')
+    #@patch('flaskext.mysql.MySQL.connect')
     def test_create_disk(self,
-                         mysql_connector,
+                         #mysql_connector,
                          exec_function_dbconnect,
                          exec_function_ospathexists):
-        mysql_connector.return_value.connect.return_value = None
+        #mysql_connector.return_value.connect.return_value = None
         exec_function_dbconnect().get_vps_details.return_value = ''
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_disk.return_value = [1,1,3,4]
@@ -182,9 +185,9 @@ class VPSServerTestCase(unittest.TestCase):
 
     @patch('subprocess.Popen')
     @patch('modules.database.DatabaseVPS')
-    @patch('flaskext.mysql.MySQL.connect')
+    #@patch('flaskext.mysql.MySQL.connect')
     def test_delete_disk(self,
-                         mysql_connector,
+                         #mysql_connector,
                          exec_function_dbconnect,
                          exec_function_fileopen):
 
@@ -198,15 +201,17 @@ class VPSServerTestCase(unittest.TestCase):
 
         exec_function_fileopen.return_value = process_mock
 
-        mysql_connector.return_value.connect.return_value = None
+        #mysql_connector.return_value.connect.return_value = None
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
         print(rv.data)
         assert b'Disk 878 Delete' in rv.data
 
-    @patch('flaskext.mysql.MySQL.connect')
-    def test_delete_disk_no_image_found(self, mysql_connector):
-        mysql_connector.return_value.connect.return_value = None
+    #@patch('flaskext.mysql.MySQL.connect')
+    def test_delete_disk_no_image_found(self
+                                        #,mysql_connector
+                                        ):
+        #mysql_connector.return_value.connect.return_value = None
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
         assert(b'An error occurred generating script' in rv.data)
@@ -222,9 +227,11 @@ class VPSServerTestCase(unittest.TestCase):
         assert b'Terminal Restarted' in rv.data
 
     @patch('modules.database.DatabaseVPS')
-    @patch('flaskext.mysql.MySQL.connect')
-    def test_updatevps(self, mysql_connector, exec_function_dbconnect):
-        mysql_connector.return_value.connect.return_value = None
+    #@patch('flaskext.mysql.MySQL.connect')
+    def test_update_vps(self,
+                        #mysql_connector,
+                        exec_function_dbconnect):
+        #mysql_connector.return_value.connect.return_value = None
         exec_function_dbconnect().get_vps_details.return_value = ''
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_disk.return_value = [1, 1, 3, 4]

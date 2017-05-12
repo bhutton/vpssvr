@@ -10,7 +10,7 @@ app.config.from_object(__name__)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Get database configurations from configuration.cfg
-configuration = configparser.ConfigParser()
+'''configuration = configparser.ConfigParser()
 configuration.read("{}/../configuration.cfg".format(dir_path))
 database_driver = configuration.get('Database', 'database_driver')
 database_user = configuration.get('Database', 'database_user')
@@ -26,32 +26,34 @@ if database_driver is 'mysql':
     app.config['MYSQL_DATABASE_HOST'] = database_host
 
 db_connector = MySQL()
-db_connector.init_app(app)
+db_connector.init_app(app)'''
 
-class DatabaseNetwork:
-    def __init__(self):
-        '''try:
-            self.cnx = db_connector.connect()
-            self.cursor = self.cnx.cursor()
-            self.database_connected = True
-        except:
-            print("error connecting to database")
-            self.database_connected = False'''
+class DatabaseConnectivity():
+
+    def __init__(self, database_driver):
+        # Get database configurations from configuration.cfg
+        configuration = configparser.ConfigParser()
+        configuration.read("{}/../configuration.cfg".format(dir_path))
+        database_driver = configuration.get('Database', 'database_driver')
+        database_user = configuration.get('Database', 'database_user')
+        database_password = configuration.get('Database', 'database_password')
+        database_host = configuration.get('Database', 'database_host')
+        database_name = configuration.get('Database', 'database_name')
+        raise_on_warnings = configuration.get('Database', 'raise_on_warnings')
+
+        if database_driver is 'mysql':
+            app.config['MYSQL_DATABASE_USER'] = database_user
+            app.config['MYSQL_DATABASE_PASSWORD'] = database_password
+            app.config['MYSQL_DATABASE_DB'] = database_name
+            app.config['MYSQL_DATABASE_HOST'] = database_host
+
+        self.cursor = None
         self.db_connection(database_driver)
 
-    def __exit__(self):
-        try:
-            self.cnx = db_connector.connect()
-            #self.cnx = mysql.connector.connect(**config)
-            self.cursor = self.cnx.cursor()
-            self.cnx.close()
-        except:
-            print("Error closing database")
-
     def db_connection(self, database_driver):
-        if database_driver is 'mysql':
+        if database_driver == 'mysql':
             return self.db_connect_mysql()
-        if database_driver is 'sqlite':
+        if database_driver == 'sqlite':
             return self.db_connect_sqlite()
 
     def db_connect_sqlite(self):
@@ -71,6 +73,43 @@ class DatabaseNetwork:
         except:
             self.database_connected = False
             return "error connecting to database"
+
+    def db_return_cursor(self):
+        return self.cursor
+
+'''class DBMySQL(DatabaseConnectivity):
+    def db_connection(self, database_driver):
+        return self.db_connect_mysql()
+
+class DBSqlite(DatabaseConnectivity):
+    def db_connection(self, database_driver):
+        return self.db_connect_sqlite()'''
+
+
+class DatabaseNetwork:
+    def __init__(self):
+        '''try:
+            self.cnx = db_connector.connect()
+            self.cursor = self.cnx.cursor()
+            self.database_connected = True
+        except:
+            print("error connecting to database")
+            self.database_connected = False'''
+        d = DatabaseConnectivity(database_driver)
+        self.cursor = d.db_return_cursor()
+
+    def __exit__(self):
+        try:
+            self.cnx = db_connector.connect()
+            #self.cnx = mysql.connector.connect(**config)
+            self.cursor = self.cnx.cursor()
+            self.cnx.close()
+        except:
+            print("Error closing database")
+
+
+
+
 
     def get_database_connection_status(self):
         return self.database_connected
@@ -125,13 +164,15 @@ class DatabaseVPS:
         self.cnx = db_connector.connect()'''
         #self.cnx = mysql.connector.connect(**configuration_settings)
         #self.cursor = self.cnx.cursor()
-        self.db_connection(database_driver)
+        #self.db_connection(database_driver)
 
+        d = DatabaseConnectivity(database_driver)
+        self.cursor = d.db_return_cursor()
 
     def db_connection(self, database_driver):
-        if database_driver is 'mysql':
+        if database_driver == 'mysql':
             return self.db_connect_mysql()
-        if database_driver is 'sqlite':
+        if database_driver == 'sqlite':
             return self.db_connect_sqlite()
 
     def db_connect_sqlite(self):
@@ -145,7 +186,6 @@ class DatabaseVPS:
 
     def db_connect_mysql(self):
         try:
-            #self.cnx = mysql.connector.connect(**configuration_settings)
             self.cnx = db_connector.connect()
             self.cursor = self.cnx.cursor()
             self.database_connected = True
@@ -194,11 +234,12 @@ class DatabaseVPS:
         self.cnx.commit()
 
     def get_vps_details(self, id):
-
         get_vps_details_sql_query = (
-        "select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s")
-        self.cursor.execute("select id,name,ram,console,image,path,startscript,stopscript from vps where vps.id=%s",
-                            (id,))
+            "select "
+                "id,name,ram,console,image,path,startscript,stopscript "
+            "from "
+                "vps where vps.id=?")
+        self.cursor.execute(get_vps_details_sql_query,(id,))
         self.vps = self.cursor.fetchone()
 
         self.id = self.vps[0]
