@@ -50,6 +50,9 @@ class DatabaseConnectivity():
         self.cursor = None
         self.db_connection(database_driver)
 
+    def __del__(self):
+        self.cnx.close()
+
     def db_connection(self, database_driver):
         if database_driver == 'mysql':
             return self.db_connect_mysql()
@@ -58,8 +61,13 @@ class DatabaseConnectivity():
 
     def db_connect_sqlite(self):
         try:
-            self.cnx = sqlite.connect("/tmp/database.db")
-            self.cnx.row_factory = sqlite.Row
+            if(os._exists("/tmp/database.db")):
+                self.cnx = sqlite.connect("/tmp/database.db")
+                self.d.db_execute_query("CREATE TABLE vps (id,name,ram,console,image,path,startscript,stopscript)")
+            else:
+                self.cnx = sqlite.connect("/tmp/database.db")
+
+            #self.cnx.row_factory = sqlite.Row
             self.cursor = self.cnx.cursor()
             return 'connection successful'
         except:
@@ -67,6 +75,8 @@ class DatabaseConnectivity():
 
     def db_connect_mysql(self):
         try:
+            db_connector = MySQL()
+            db_connector.init_app(app)
             self.cnx = db_connector.connect()
             self.cursor = self.cnx.cursor()
             self.database_connected = True
@@ -76,6 +86,10 @@ class DatabaseConnectivity():
 
     def db_return_cursor(self):
         return self.cursor
+
+    def db_execute_query(self, query):
+        self.cursor.execute(query)
+        return self.cnx.commit()
 
 '''class DBMySQL(DatabaseConnectivity):
     def db_connection(self, database_driver):
@@ -166,8 +180,8 @@ class DatabaseVPS:
         #self.cursor = self.cnx.cursor()
         #self.db_connection(database_driver)
 
-        d = DatabaseConnectivity(database_driver)
-        self.cursor = d.db_return_cursor()
+        self.d = DatabaseConnectivity(database_driver)
+        self.cursor = self.d.db_return_cursor()
 
     def db_connection(self, database_driver):
         if database_driver == 'mysql':
@@ -239,6 +253,11 @@ class DatabaseVPS:
                 "id,name,ram,console,image,path,startscript,stopscript "
             "from "
                 "vps where vps.id=?")
+        #self.cursor.execute("CREATE TABLE vps (id,name,ram,console,image,path,startscript,stopscript,vps.id)")
+        #self.cursor.execute("INSERT INTO vps VALUES (1,'test',512,1,1,'/tmp/','abc','def',1)")
+        #self.d.db_execute_query("INSERT INTO vps VALUES (1,'test',512,1,1,'/tmp/','abc','def')")
+        #self.cnx.commit()
+
         self.cursor.execute(get_vps_details_sql_query,(id,))
         self.vps = self.cursor.fetchone()
 
