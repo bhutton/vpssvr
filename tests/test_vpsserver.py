@@ -3,6 +3,7 @@ import vpsserver
 import unittest
 import tempfile
 import base64
+import modules.database as database
 #import json
 #from flask import Flask, jsonify, abort, make_response
 #from flask import appcontext_pushed, g
@@ -212,6 +213,10 @@ class VPSServerTestCase(unittest.TestCase):
                                         #,mysql_connector
                                         ):
         #mysql_connector.return_value.connect.return_value = None
+
+        d = database.DatabaseVPS()
+        d.create_disk_in_database(878,'mydisk',1,20,878)
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
         assert(b'An error occurred generating script' in rv.data)

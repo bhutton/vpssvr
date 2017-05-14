@@ -91,6 +91,14 @@ class DatabaseConnectivity():
         self.cursor.execute(query)
         return self.cnx.commit()
 
+    def db_get_row(self, query):
+        self.cursor.execute(query)
+        return self.cursor.fetchone()
+
+    def db_get_all(self, query):
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
+
 '''class DBMySQL(DatabaseConnectivity):
     def db_connection(self, database_driver):
         return self.db_connect_mysql()
@@ -217,17 +225,20 @@ class DatabaseVPS:
 
     def get_devices(self, id):
         self.cursor.execute(
-            "select interface.id,interface.device,interface.vps_id,bridge.device from interface,bridge where vps_id=%s and interface.bridge_id = bridge.id",
+            "select interface.id,interface.device,interface.vps_id,bridge.device from interface,bridge where vps_id=? and interface.bridge_id = bridge.id",
             (id,))
 
         return self.cursor.fetchall()
 
     def get_vps_id_associated_with_disk(self, id):
-        self.cnx = db_connector.connect()
-        self.cursor = self.cnx.cursor()
+        #self.cnx = db_connector.connect()
+        #self.cursor = self.cnx.cursor()
 
-        self.cursor.execute("select vps_id from disk where id=%s", (id,))
-        VPS = self.cursor.fetchone()
+        #self.cursor.execute("select vps_id from disk where id=%s", (id,))
+
+        #VPS = self.cursor.fetchone()
+
+        VPS = self.d.db_get_row("select vps_id from disk where id=" + str(id))
 
         return (VPS[0])
 
@@ -239,27 +250,36 @@ class DatabaseVPS:
         return self.cursor.fetchone()
 
     def get_disks_details_from_database(self, id):
+        #self.cursor.execute("select id,size,name from disk where vps_id=%s", (id,))
+        #return self.cursor.fetchall()
 
-        self.cursor.execute("select id,size,name from disk where vps_id=%s", (id,))
-        return self.cursor.fetchall()
+        self.d.db_get_all("select id,size,name from disk where vps_id=" + str(id))
 
     def delete_disk_from_database(self, id):
-        self.cursor.execute("delete from disk where id=%s", (id,))
-        self.cnx.commit()
+        #self.cursor.execute("delete from disk where id=%s", (id,))
+        #self.cnx.commit()
+        self.d.db_execute_query("delete from disk where id=" + str(id))
+
+    def create_disk_in_database(self, id, name, ord, size, vps_id):
+        query = "insert into disk values(" + \
+                str(id) + ",'" + name + "'," + str(ord) + "," + str(size) + "," + str(vps_id) + ")"
+        self.d.db_execute_query(query)
 
     def get_vps_details(self, id):
         get_vps_details_sql_query = (
             "select "
                 "id,name,ram,console,image,path,startscript,stopscript "
             "from "
-                "vps where vps.id=?")
+                "vps where vps.id=" + str(id))
         #self.cursor.execute("CREATE TABLE vps (id,name,ram,console,image,path,startscript,stopscript,vps.id)")
         #self.cursor.execute("INSERT INTO vps VALUES (1,'test',512,1,1,'/tmp/','abc','def',1)")
         #self.d.db_execute_query("INSERT INTO vps VALUES (1,'test',512,1,1,'/tmp/','abc','def')")
         #self.cnx.commit()
 
-        self.cursor.execute(get_vps_details_sql_query,(id,))
-        self.vps = self.cursor.fetchone()
+        self.vps = self.d.db_get_row(get_vps_details_sql_query)
+
+        #self.cursor.execute(get_vps_details_sql_query,(id,))
+        #self.vps = self.cursor.fetchone()
 
         self.id = self.vps[0]
         self.name = self.vps[1]
