@@ -64,6 +64,8 @@ class VPSServerTestCase(unittest.TestCase):
 
         exec_function_ospathexists('/dev/vmm/1').return_value = process_mock
 
+        d = database.DatabaseVPS.create_vps_in_database(878,'test',)
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/status/878',
                                  'GET','miguel','python')
         assert b'Running' in rv.data

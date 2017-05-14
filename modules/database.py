@@ -265,6 +265,9 @@ class DatabaseVPS:
                 str(id) + ",'" + name + "'," + str(ord) + "," + str(size) + "," + str(vps_id) + ")"
         self.d.db_execute_query(query)
 
+
+
+
     def get_vps_details(self, id):
         get_vps_details_sql_query = (
             "select "
