@@ -262,11 +262,26 @@ class DatabaseVPS:
 
     def create_disk_in_database(self, id, name, ord, size, vps_id):
         query = "insert into disk values(" + \
-                str(id) + ",'" + name + "'," + str(ord) + "," + str(size) + "," + str(vps_id) + ")"
+                str(id) + ",'" + \
+                str(name) + "'," + \
+                str(ord) + "," + \
+                str(size) + "," + \
+                str(vps_id) + ")"
         self.d.db_execute_query(query)
 
-
-
+    def create_vps_in_database(self, id, name, description, ram, console, image, path, startscript, stopscript):
+        query = "insert into vps values(" + \
+            str(id) + ",'" + \
+            str(name) + "','" + \
+            str(description) + "'," + \
+            str(ram) + "," + \
+            str(console) + "," + \
+            str(image) + ",'" + \
+            str(path) + "','" + \
+            str(startscript) + "','" + \
+            str(stopscript) + "')"
+        print(query)
+        self.d.db_execute_query(query)
 
     def get_vps_details(self, id):
         get_vps_details_sql_query = (

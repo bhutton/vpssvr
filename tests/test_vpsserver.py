@@ -64,7 +64,9 @@ class VPSServerTestCase(unittest.TestCase):
 
         exec_function_ospathexists('/dev/vmm/1').return_value = process_mock
 
-        d = database.DatabaseVPS.create_vps_in_database(878,'test',)
+        d = database.DatabaseVPS()
+
+        d.create_vps_in_database(878,'test','mytest',512,1,1,'mypath','start','stop')
 
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/status/878',
                                  'GET','miguel','python')
@@ -210,14 +212,10 @@ class VPSServerTestCase(unittest.TestCase):
         print(rv.data)
         assert b'Disk 878 Delete' in rv.data
 
-    #@patch('flaskext.mysql.MySQL.connect')
-    def test_delete_disk_no_image_found(self
-                                        #,mysql_connector
-                                        ):
-        #mysql_connector.return_value.connect.return_value = None
-
+    def test_delete_disk_no_image_found(self):
         d = database.DatabaseVPS()
         d.create_disk_in_database(878,'mydisk',1,20,878)
+        d.create_disk_in_database(879, 'mydisk', 1, 20, 878)
 
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
