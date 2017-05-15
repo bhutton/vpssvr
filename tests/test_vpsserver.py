@@ -124,7 +124,6 @@ class VPSServerTestCase(unittest.TestCase):
 
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
-        print(rv.data)
         assert b'Disk 878 Delete' in rv.data
 
 
@@ -141,7 +140,6 @@ class VPSServerTestCase(unittest.TestCase):
     def test_update_vps(self):
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/updatevps/878',
                                  'GET', 'miguel', 'python')
-        print(rv.data)
         assert b'VPS 878 Updated' in rv.data
 
     def test_take_snapshot(self):

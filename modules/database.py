@@ -203,7 +203,6 @@ class DatabaseVPS:
             str(path) + "','" + \
             str(startscript) + "','" + \
             str(stopscript) + "')"
-        print(query)
         self.d.db_execute_query(query)
 
     def get_vps_details(self, id):
@@ -258,14 +257,8 @@ class DatabaseVPS:
         vps_startscript = self.vps[6]
         vps_stopscript = self.vps[7]
 
-        print("vps_path = {}".format(vps_path))
-
         if (vps_startscript == ""): vps_startscript = "start.sh"
         if (vps_path == ""): vps_path = RootPath + "/" + vps_id
-
-        print("vps_path = {}".format(vps_path))
-
-        print("command = " + str(vps_path) + "/" + vps_startscript)
 
         return ("/bin/sh " + vps_path + "/" + vps_startscript)
 

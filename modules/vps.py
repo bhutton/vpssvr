@@ -178,7 +178,6 @@ class VMFunc:
             return "Error with ".format(LogFile)
 
     def execbhyve(self, command, ID):
-        print("ID = {}".format(ID))
         self.command = command
         self.id = ID
 
@@ -355,8 +354,6 @@ class VMFunc:
 
         self.file = file
         self.data = data
-
-        print("script = {}".format(self.file))
 
         try:
             f = open(self.file, 'w')
@@ -539,8 +536,6 @@ class VMFunc:
         else:
             VPSPath = Path
 
-        # print "VPS Path: {}".format(VPSPath)
-
         Devices = vps.get_devices(vps_id)
         StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref, ID)
 
@@ -571,8 +566,6 @@ class VMFunc:
             self.generateScript(DeviceMapScript, DevicemapData)
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
-            # print "Linux Device - Image 2 = {}".format(DevicemapData)
-
         # Centos
         elif (Image == 3):
 
@@ -582,7 +575,6 @@ class VMFunc:
 
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
-            # print "Linux Device - Image 3 = {}".format(StartScriptData)
         else:
             return "Error: no image specified"
 
