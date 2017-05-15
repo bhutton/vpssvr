@@ -57,7 +57,7 @@ config = {
 }
 
 
-class VMFunc:
+class VMFunctions:
     def __init__(self):
         self.id = ''
         Command = ''
@@ -84,18 +84,18 @@ class VMFunc:
         self.Win10 = 4
         self.status = ''
 
-    def checkSecurity(self):
+    def check_security(self):
 
         if (PassString == self.Auth):
             return "Pass"
         else:
             return "Fail"
 
-    def getStatus(self):
+    def get_status(self):
         return (self.status)
 
-    def getNetStatus(self, id):
-        output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
+    def get_network_status(self, id):
+        output = self.execute_command(IFConfig + ' tap' + format(id) + ' | grep UP')
 
         if (output == ""):
             output = "DOWN"
@@ -104,19 +104,21 @@ class VMFunc:
 
         return output
 
-    def stopNetwork(self, id):
-        output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' down')
+    def stop_network(self, id):
+        output, error = self.execute_command(IFConfig +
+                                    ' tap' + format(id) +
+                                    ' down')
         return output
 
-    def startNetwork(self, id):
-        output, error = self.execcmd(IFConfig + ' tap' + format(id) + ' up')
+    def start_network(self, id):
+        output, error = self.execute_command(IFConfig + ' tap' + format(id) + ' up')
 
         return output
 
-    def getCommand(self):
+    def get_command(self):
         return self.command
 
-    def getID(self):
+    def get_id(self):
         return self.id
 
     def logentry(self, data):
@@ -146,7 +148,7 @@ class VMFunc:
         except:
             return "failed to execute bhyve command"
 
-    def execcmd(self, cmd):
+    def execute_command(self, cmd):
         proc = subprocess.Popen(['/bin/sh', '-c', cmd],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
@@ -156,7 +158,7 @@ class VMFunc:
 
         return (output, error)
 
-    def execcmdFork(self, cmd):
+    def fork_and_execute_command(self, cmd):
         pid = os.fork()
 
         if (pid == 0):
@@ -169,7 +171,7 @@ class VMFunc:
 
             output, error = proc.communicate()
 
-    def takeSnapshot(self, id, snapshot):
+    def take_snapshot_of_vps(self, id, snapshot):
 
         try:
 
@@ -190,7 +192,7 @@ class VMFunc:
         except:
             return "An error occurred"
 
-    def listSnapshot(self, id):
+    def list_snapshots(self, id):
 
         try:
             self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
@@ -206,7 +208,7 @@ class VMFunc:
         except:
             return "An error occured"
 
-    def restoreSnapshot(self, id, snapshot):
+    def restore_snapshot(self, id, snapshot):
 
         try:
             self.command = ZFSCmd + ' rollback ' + snapshot
@@ -222,7 +224,7 @@ class VMFunc:
         except:
             return error
 
-    def removeSnapshot(self, id, snapshot):
+    def remove_snapshot(self, id, snapshot):
 
         self.command = ZFSCmd + ' destroy ' + snapshot
 
@@ -233,7 +235,7 @@ class VMFunc:
 
         return "Snapshot Removed"
 
-    def restartConsole(self, id):
+    def restart_console(self, id):
         stopconsole = "sh " + RootPath + "/" + str(id) + "/stopconsole.sh"
         startconsole = "sh " + RootPath + "/" + str(id) + "/startconsole.sh"
 
@@ -251,7 +253,7 @@ class VMFunc:
 
         return "Terminal Restarted\n"
 
-    def checkStatus(self, vps_id):
+    def check_vps_status(self, vps_id):
         self.id = vps_id
 
         VPS_Conn = database.DatabaseVPS()
@@ -273,26 +275,26 @@ class VMFunc:
 
 
 
-    def start(self, id):
+    def start_vps(self, id):
         VPS_DB = database.DatabaseVPS()
         VPS_DB.get_vps_details(id)
         self.execbhyve(VPS_DB.startCommand(RootPath), str(id))
         return "Started VPS {}\n".format(id)
 
-    def stop(self, id):
+    def stop_vps(self, id):
         VPS_DB = database.DatabaseVPS()
         VPS_DB.get_vps_details(id)
         self.execbhyve(VPS_DB.stopCommand(RootPath), str(id))
         self.execbhyve(VPS_DB.stopConsole(RootPath), str(id))
         return "Stopped VPS {}\n".format(id)
 
-    def delete(self, id):
+    def delete_vps(self, id):
         PathOrig = RootPath + str(id)
         PathDest = RootPath + "deleted/" + str(id)
 
         if (ZFSEnable == 1):
             cmd = ZFSCmd + " destroy " + ZFSRoot + "/" + str(id)
-            output, error = self.execcmd(cmd)
+            output, error = self.execute_command(cmd)
             return error
         else:
             if os.path.exists(PathOrig):
@@ -300,7 +302,7 @@ class VMFunc:
             else:
                 return "Disk doesn't exist"
 
-    def generateScript(self, file, data):
+    def create_script(self, file, data):
 
         self.file = file
         self.data = data
@@ -313,7 +315,7 @@ class VMFunc:
         except:
             return "Error occurred generating script".format(self.file)
 
-    def genBhyveCommands(self, RAM, BootDrive, Name, NetInt, Drives, Console, ID, Path):
+    def generate_bhyve_commands(self, RAM, BootDrive, Name, NetInt, Drives, Console, ID, Path):
         BhyveLoad = "/usr/sbin/bhyveload -m {} -d {} {}\n".format(RAM, BootDrive, ID)
         Bhyve = "/usr/sbin/bhyve -A -H -P -s 0:0,hostbridge -s 1:0,lpc {} {} -l com1,/dev/nmdm{}A -c 4 -m {} {} &\n".format(
             NetInt, Drives, Console, RAM, ID)
@@ -324,7 +326,7 @@ class VMFunc:
 
         return (BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox)
 
-    def genDevices(self, Devices, Interface):
+    def generate_devices(self, Devices, Interface):
         Count = 0
         NetInt = ''
         Interface = 2
@@ -345,7 +347,7 @@ class VMFunc:
 
         return (NetInt, AddTaps, DelTaps, AddBridges, self.interface)
 
-    def genDisks(self, Disks, Interface, ID, Path):
+    def generate_disks(self, Disks, Interface, ID, Path):
         Count = 0
         self.interface = Interface
 
@@ -375,7 +377,7 @@ class VMFunc:
 
         return (BootDrive, Drives, self.interface, LinuxBoot)
 
-    def createvps(self, id):
+    def create_vps(self, id):
 
         vps = database.DatabaseVPS()
         vps.get_vps_details(id)
@@ -394,22 +396,22 @@ class VMFunc:
 
         Interface = 2
 
-        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, Path)
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
-                                                                                     Drives, Console, ID, Path)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, Path)
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
+                                                                                            Drives, Console, ID, Path)
 
         StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref, ID)
         Network = "/sbin/ifconfig "
 
         DstImg = Path + "/" + "disk.img"
 
-        SrcImg = self.setImagePath(Image)
+        SrcImg = self.set_image_path(Image)
 
         if not os.path.exists(Path):
             if (ZFSEnable == 1):
                 cmd = ZFSCmd + " create " + ZFSRoot + "/" + str(ID)
-                self.execcmd(cmd)
+                self.execute_command(cmd)
             else:
                 os.makedirs(Path)
 
@@ -418,7 +420,7 @@ class VMFunc:
                 ID) + "/installing.txt" + " && " + CP + " " + SrcImg + " " + BootDrive + " && " + RM + " " + RootPath + str(
                 ID) + "/installing.txt"
 
-            self.execcmdFork(cmd)
+            self.fork_and_execute_command(cmd)
 
             StartScript = "{}/start.sh".format(Path)
             StopScript = "{}/stop.sh".format(Path)
@@ -430,12 +432,12 @@ class VMFunc:
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
             elif (Image == self.Ubuntu):
                 DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
-                self.generateScript(DeviceMapScript, DevicemapData)
+                self.create_script(DeviceMapScript, DevicemapData)
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
             elif (Image == self.Centos):
                 DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
-                self.generateScript(DeviceMapScript, DevicemapData)
+                self.create_script(DeviceMapScript, DevicemapData)
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
             elif (Image == self.Win10):
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
@@ -446,14 +448,14 @@ class VMFunc:
             StartConsoleScript = ShellInABox
             StopConsoleScript = StopShellInABox
 
-            self.generateScript(StartScript, StartScriptData)
-            self.generateScript(StopScript, StopScriptData)
-            self.generateScript(StartConsole, StartConsoleScript)
-            self.generateScript(StopConsole, StopConsoleScript)
+            self.create_script(StartScript, StartScriptData)
+            self.create_script(StopScript, StopScriptData)
+            self.create_script(StartConsole, StartConsoleScript)
+            self.create_script(StopConsole, StopConsoleScript)
 
         return "Created VPS: {}\n".format(id)
 
-    def setImagePath(self, Image):
+    def set_image_path(self, Image):
         if (Image == self.FreeBSD):
             SrcImg = SrcImgFreeBSD
         elif (Image == self.Ubuntu):
@@ -465,7 +467,7 @@ class VMFunc:
 
         return SrcImg
 
-    def updateVPS(self, vps_id):
+    def update_vps(self, vps_id):
 
         vps = database.DatabaseVPS()
         vps.get_vps_details(vps_id)
@@ -491,11 +493,11 @@ class VMFunc:
 
         Interface = 2
 
-        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, VPSPath)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, VPSPath)
 
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
-                                                                                     Drives, Console, ID, VPSPath)
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
+                                                                                            Drives, Console, ID, VPSPath)
 
         StartScript = "{}/start.sh".format(VPSPath)
         StopScript = "{}/stop.sh".format(VPSPath)
@@ -513,7 +515,7 @@ class VMFunc:
         elif (Image == 2):
             DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath, LinuxBoot)
 
-            self.generateScript(DeviceMapScript, DevicemapData)
+            self.create_script(DeviceMapScript, DevicemapData)
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
         # Centos
@@ -521,7 +523,7 @@ class VMFunc:
 
             DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath, LinuxBoot)
 
-            self.generateScript(DeviceMapScript, DevicemapData)
+            self.create_script(DeviceMapScript, DevicemapData)
 
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
@@ -531,15 +533,15 @@ class VMFunc:
         StartConsoleScript = ShellInABox
         StopConsoleScript = StopShellInABox
 
-        self.generateScript(StartConsole, StartConsoleScript)
-        self.generateScript(StopConsole, StopConsoleScript)
+        self.create_script(StartConsole, StartConsoleScript)
+        self.create_script(StopConsole, StopConsoleScript)
 
-        self.generateScript(StartScript, StartScriptData)
-        self.generateScript(StopScript, StopScriptData)
+        self.create_script(StartScript, StartScriptData)
+        self.create_script(StopScript, StopScriptData)
 
         return "VPS {} Updated\n".format(vps_id)
 
-    def createDiskImg(self, id):
+    def create_disk_image(self, id):
         vps = database.DatabaseVPS()
         Disk = vps.get_disk(id)
 
@@ -567,18 +569,18 @@ class VMFunc:
         else:
             VPSPath = Path
 
-        SrcImg = self.setImagePath(Image)
+        SrcImg = self.set_image_path(Image)
 
         Devices = vps.get_devices(vps_id)
 
-        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, Path)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, Path)
 
         create_disk = "truncate -s {}GB {}/{}/{}".format(size, RootPath, vps_id, id)
         output = subprocess.Popen(['/bin/sh', '-c', create_disk], stdout=subprocess.PIPE)
 
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
-                                                                                     Drives, Console, ID, VPSPath)
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
+                                                                                            Drives, Console, ID, VPSPath)
 
         StartScript = "{}{}/start.sh".format(RootPath, vps_id)
 
@@ -593,11 +595,11 @@ class VMFunc:
         elif (Image == self.Centos):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
-        self.generateScript(StartScript, StartScriptData)
+        self.create_script(StartScript, StartScriptData)
 
         return "Create Disk for VPS {}\n".format(vps_id)
 
-    def deleteDisk(self, id):
+    def delete_disk(self, id):
 
         vps = database.DatabaseVPS()
 
@@ -641,11 +643,11 @@ class VMFunc:
 
         Interface = 2
 
-        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.genDevices(Devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.genDisks(Disks, Interface, ID, VPSPath)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, VPSPath)
 
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.genBhyveCommands(RAM, BootDrive, Name, NetInt,
-                                                                                     Drives, Console, ID, VPSPath)
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
+                                                                                            Drives, Console, ID, VPSPath)
 
         StartScript = "{}/start.sh".format(VPSPath)
 
@@ -661,7 +663,7 @@ class VMFunc:
 
         StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
-        if (self.generateScript(StartScript, StartScriptData)):
+        if (self.create_script(StartScript, StartScriptData)):
             return "An error occurred generating script"
 
         return "Disk {} Delete\n".format(id)

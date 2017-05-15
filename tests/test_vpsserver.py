@@ -35,7 +35,7 @@ class VPSServerTestCase(unittest.TestCase):
         rv = self.app.get('/vpssvr/api/v1.0/tasks/status/878')
         assert b'Unauthorized' in rv.data
 
-    @patch('modules.vps.VMFunc.execcmd')
+    @patch('modules.vps.VMFunctions.execute_command')
     @patch('os.path.exists')
     def test_get_status(self,
             exec_function_ospathexists,
