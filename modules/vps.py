@@ -59,12 +59,6 @@ config = {
 
 class VMFunc:
     def __init__(self):
-        '''Data = data.split(',')
-        self.Auth = Data[0]
-        self.id = int(Data[1])
-        Command = Data[2]'''
-
-        #self.id = data
         self.id = ''
         Command = ''
 
@@ -88,7 +82,6 @@ class VMFunc:
         self.Ubuntu = 2
         self.Centos = 3
         self.Win10 = 4
-        #self.status = self.checkStatus(self.id)
         self.status = ''
 
     def checkSecurity(self):
@@ -152,12 +145,7 @@ class VMFunc:
         return (self.status)
 
     def getNetStatus(self, id):
-        #vps = database.DatabaseVPS()
-        #devices = vps.get_devices(id)
-
         output = self.execcmd(IFConfig + ' tap' + format(id) + ' | grep UP')
-
-        #print output
 
         if (output == ""):
             output = "DOWN"
@@ -610,15 +598,7 @@ class VMFunc:
         return "VPS {} Updated\n".format(vps_id)
 
     def createDiskImg(self, id):
-
         vps = database.DatabaseVPS()
-        # return vps.getImage()
-
-        '''cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-        cursor.execute("select size,vps_id from disk where id=%s",(id,))
-        Disk = cursor.fetchone()'''
-
         Disk = vps.get_disk(id)
 
         vps_id = Disk[1]
@@ -696,17 +676,6 @@ class VMFunc:
             VPSPath = RootPath + "/" + str(vps_id)
         else:
             VPSPath = Path
-
-        '''if (Image == self.FreeBSD):
-            SrcImg = SrcImgFreeBSD
-        elif (Image == self.Ubuntu):
-            SrcImg = SrcImgUbuntu
-        elif (Image == self.Centos):
-            SrcImg = SrcImgCentos
-        elif (Image == self.Win10):
-            SrcImg = SrcImgWin10
-        else:
-            return "Error: no image found"'''
 
         delete_disk = "rm {}/{}".format(VPSPath, id)
 

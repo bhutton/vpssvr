@@ -9,25 +9,6 @@ app.config.from_object(__name__)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-# Get database configurations from configuration.cfg
-'''configuration = configparser.ConfigParser()
-configuration.read("{}/../configuration.cfg".format(dir_path))
-database_driver = configuration.get('Database', 'database_driver')
-database_user = configuration.get('Database', 'database_user')
-database_password = configuration.get('Database', 'database_password')
-database_host = configuration.get('Database', 'database_host')
-database_name = configuration.get('Database', 'database_name')
-raise_on_warnings = configuration.get('Database', 'raise_on_warnings')
-
-if database_driver is 'mysql':
-    app.config['MYSQL_DATABASE_USER'] = database_user
-    app.config['MYSQL_DATABASE_PASSWORD'] = database_password
-    app.config['MYSQL_DATABASE_DB'] = database_name
-    app.config['MYSQL_DATABASE_HOST'] = database_host
-
-db_connector = MySQL()
-db_connector.init_app(app)'''
-
 class DatabaseConnectivity():
 
     def __init__(self, database_driver):
@@ -61,14 +42,7 @@ class DatabaseConnectivity():
 
     def db_connect_sqlite(self):
         try:
-            if(os._exists("/tmp/database.db")):
-                self.cnx = sqlite.connect("/tmp/database.db")
-                #self.d.db_execute_query("CREATE TABLE vps (id,name,ram,console,image,path,startscript,stopscript)")
-                #self.d.db_execute_query("CREATE TABLE disk (id,name,size,vps_id)")
-            else:
-                self.cnx = sqlite.connect("/tmp/database.db")
-
-            #self.cnx.row_factory = sqlite.Row
+            self.cnx = sqlite.connect("/tmp/database.db")
             self.cursor = self.cnx.cursor()
             return 'connection successful'
         except:
@@ -100,31 +74,14 @@ class DatabaseConnectivity():
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
-'''class DBMySQL(DatabaseConnectivity):
-    def db_connection(self, database_driver):
-        return self.db_connect_mysql()
-
-class DBSqlite(DatabaseConnectivity):
-    def db_connection(self, database_driver):
-        return self.db_connect_sqlite()'''
-
-
 class DatabaseNetwork:
     def __init__(self):
-        '''try:
-            self.cnx = db_connector.connect()
-            self.cursor = self.cnx.cursor()
-            self.database_connected = True
-        except:
-            print("error connecting to database")
-            self.database_connected = False'''
         d = DatabaseConnectivity(database_driver)
         self.cursor = d.db_return_cursor()
 
     def __exit__(self):
         try:
             self.cnx = db_connector.connect()
-            #self.cnx = mysql.connector.connect(**config)
             self.cursor = self.cnx.cursor()
             self.cnx.close()
         except:
@@ -138,8 +95,6 @@ class DatabaseNetwork:
         return self.database_connected
 
     def get_interface(self):
-        #self.cnx = mysql.connect()
-        #self.cnx = mysql.connector.connect(**config)
         self.cursor = self.cnx.cursor()
         self.cursor.execute("select device from interface")
         self.int = self.cursor.fetchall()
@@ -171,23 +126,6 @@ class DatabaseVPS:
         database_host = configuration.get('Database', 'database_host')
         database_name = configuration.get('Database', 'database_name')
         raise_on_warnings = configuration.get('Database', 'raise_on_warnings')
-        '''configuration_settings = configparser.ConfigParser()
-        configuration_settings.read("{}/../configuration.cfg".format(dir_path))
-
-        configuration_settings = {
-            'user': configuration_settings.get('Database', 'database_user'),
-            'password': configuration_settings.get('Database', 'database_password'),
-            'host': configuration_settings.get('Database', 'database_host'),
-            'database': configuration_settings.get('Database', 'database_name'),
-            'raise_on_warnings': True,
-        }
-
-        self.root_path = configuration_settings.get('Global', 'RootPath')
-
-        self.cnx = db_connector.connect()'''
-        #self.cnx = mysql.connector.connect(**configuration_settings)
-        #self.cursor = self.cnx.cursor()
-        #self.db_connection(database_driver)
 
         self.d = DatabaseConnectivity(database_driver)
         self.cursor = self.d.db_return_cursor()
@@ -232,37 +170,17 @@ class DatabaseVPS:
         return self.cursor.fetchall()
 
     def get_vps_id_associated_with_disk(self, id):
-        #self.cnx = db_connector.connect()
-        #self.cursor = self.cnx.cursor()
-
-        #self.cursor.execute("select vps_id from disk where id=%s", (id,))
-
-        #VPS = self.cursor.fetchone()
-
         VPS = self.d.db_get_row("select vps_id from disk where id=" + str(id))
 
         return (VPS[0])
 
     def get_disk(self, id):
-        '''self.cnx = db_connector.connect()
-        self.cursor = self.cnx.cursor()
-
-        self.cursor.execute("select size,vps_id from disk where id=%s", (id,))
-        return self.cursor.fetchone()'''
-
-        print("select size,vps_id from disk where id=" + str(id))
-
         return self.d.db_get_row("select size,vps_id from disk where id=" + str(id))
 
     def get_disks_details_from_database(self, id):
-        #self.cursor.execute("select id,size,name from disk where vps_id=%s", (id,))
-        #return self.cursor.fetchall()
-
         return self.d.db_get_all("select id,size,name from disk where vps_id=" + str(id))
 
     def delete_disk_from_database(self, id):
-        #self.cursor.execute("delete from disk where id=%s", (id,))
-        #self.cnx.commit()
         return self.d.db_execute_query("delete from disk where id=" + str(id))
 
     def create_disk_in_database(self, id, name, ord, size, vps_id):
@@ -294,15 +212,7 @@ class DatabaseVPS:
                 "id,name,ram,console,image,path,startscript,stopscript "
             "from "
                 "vps where vps.id=" + str(id))
-        #self.cursor.execute("CREATE TABLE vps (id,name,ram,console,image,path,startscript,stopscript,vps.id)")
-        #self.cursor.execute("INSERT INTO vps VALUES (1,'test',512,1,1,'/tmp/','abc','def',1)")
-        #self.d.db_execute_query("INSERT INTO vps VALUES (1,'test',512,1,1,'/tmp/','abc','def')")
-        #self.cnx.commit()
-
         self.vps = self.d.db_get_row(get_vps_details_sql_query)
-
-        #self.cursor.execute(get_vps_details_sql_query,(id,))
-        #self.vps = self.cursor.fetchone()
 
         self.id = self.vps[0]
         self.name = self.vps[1]
@@ -340,10 +250,6 @@ class DatabaseVPS:
         return (self.stop_script_path)
 
     def startCommand(self, RootPath):
-
-        # print "Rootpath = ".format(RootPath)
-        # print "Get VPS ID = {}".format(self.get_vps_id())
-        # self.vps = self.get_vps_details(self.get_vps_id())
         vps_id = str(self.vps[0])
         vps_name = self.vps[1]
         vps_ram = self.vps[2]
