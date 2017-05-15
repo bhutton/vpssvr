@@ -91,56 +91,6 @@ class VMFunc:
         else:
             return "Fail"
 
-    def executeCommand(self):
-
-        if (self.checkSecurity() == "Pass"):
-
-            if (self.getCommand() == "start"):
-                self.status = self.start(self.getID())
-            elif (self.getCommand() == "stop"):
-                self.status = self.stop(self.getID())
-            elif (self.getCommand() == "createvps"):
-                self.status = self.createvps(self.getID())
-            elif (self.getCommand() == "createdisk"):
-                self.status = self.createDiskImg(self.getID())
-            elif (self.getCommand() == "deletedisk"):
-                self.status = self.deleteDisk(self.getID())
-
-            elif (self.getCommand() == "delete"):
-                self.status = self.delete(self.getID())
-
-            elif (self.getCommand() == "restartConsole"):
-                self.status = self.restartConsole(self.getID())
-
-            elif (self.getCommand() == "status"):
-                self.status = self.checkStatus(self.getID())
-
-            elif (self.getCommand() == "updatevps"):
-                self.status = self.updateVPS(self.getID())
-
-
-            elif (self.getCommand() == "takeSnapshot"):
-                self.status = self.takeSnapshot(self.getID(), self.snapShot)
-
-            elif (self.getCommand() == "listSnapshot"):
-                self.status = self.listSnapshot(self.getID())
-
-            elif (self.getCommand() == "restoreSnapshot"):
-                self.status = self.restoreSnapshot(self.getID(), self.snapShot)
-            elif (self.getCommand() == "removeSnapshot"):
-                self.status = self.removeSnapshot(self.getID(), self.snapShot)
-            elif (self.getCommand() == "netStatus"):
-                self.status = self.getNetStatus(self.getID())
-            elif (self.getCommand() == "netStop"):
-                self.status = self.stopNetwork(self.getID())
-            elif (self.getCommand() == "netStart"):
-                self.status = self.startNetwork(self.getID())
-
-        else:
-            self.status = "Connection Failed"
-
-        return self.status
-
     def getStatus(self):
         return (self.status)
 
