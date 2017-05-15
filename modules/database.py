@@ -63,7 +63,8 @@ class DatabaseConnectivity():
         try:
             if(os._exists("/tmp/database.db")):
                 self.cnx = sqlite.connect("/tmp/database.db")
-                self.d.db_execute_query("CREATE TABLE vps (id,name,ram,console,image,path,startscript,stopscript)")
+                #self.d.db_execute_query("CREATE TABLE vps (id,name,ram,console,image,path,startscript,stopscript)")
+                #self.d.db_execute_query("CREATE TABLE disk (id,name,size,vps_id)")
             else:
                 self.cnx = sqlite.connect("/tmp/database.db")
 
