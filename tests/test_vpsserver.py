@@ -160,14 +160,14 @@ class VPSServerTestCase(unittest.TestCase):
         assert b'Created' in rv.data
 
     @patch('os.path.exists')
-    @patch('modules.database.DatabaseVPS')
+    #@patch('modules.database.DatabaseVPS')
     #@patch('flaskext.mysql.MySQL.connect')
     def test_create_disk(self,
                          #mysql_connector,
-                         exec_function_dbconnect,
+                         #exec_function_dbconnect,
                          exec_function_ospathexists):
         #mysql_connector.return_value.connect.return_value = None
-        exec_function_dbconnect().get_vps_details.return_value = ''
+        '''exec_function_dbconnect().get_vps_details.return_value = ''
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_disk.return_value = [1,1,3,4]
         exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
@@ -177,7 +177,7 @@ class VPSServerTestCase(unittest.TestCase):
         exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
         exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
         exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
-
+        '''
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'success')}
         process_mock.configure_mock(**attrs)
@@ -189,16 +189,16 @@ class VPSServerTestCase(unittest.TestCase):
         assert b'Create Disk for VPS 1' in rv.data
 
     @patch('subprocess.Popen')
-    @patch('modules.database.DatabaseVPS')
+    #@patch('modules.database.DatabaseVPS')
     #@patch('flaskext.mysql.MySQL.connect')
     def test_delete_disk(self,
                          #mysql_connector,
-                         exec_function_dbconnect,
+                         #exec_function_dbconnect,
                          exec_function_fileopen):
 
-        exec_function_dbconnect().get_disk.return_value = [1, 1, 3, 4]
-        exec_function_dbconnect().getPath.return_value = \
-            dir_path + '/../../vpsman-dev'
+        #exec_function_dbconnect().get_disk.return_value = [1, 1, 3, 4]
+        #exec_function_dbconnect().getPath.return_value = \
+        #    dir_path + '/../../vpsman-dev'
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'success')}
@@ -231,13 +231,11 @@ class VPSServerTestCase(unittest.TestCase):
                                  'GET', 'miguel', 'python')
         assert b'Terminal Restarted' in rv.data
 
-    @patch('modules.database.DatabaseVPS')
+    #@patch('modules.database.DatabaseVPS')
     #@patch('flaskext.mysql.MySQL.connect')
-    def test_update_vps(self,
-                        #mysql_connector,
-                        exec_function_dbconnect):
+    def test_update_vps(self):
         #mysql_connector.return_value.connect.return_value = None
-        exec_function_dbconnect().get_vps_details.return_value = ''
+        '''exec_function_dbconnect().get_vps_details.return_value = ''
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_disk.return_value = [1, 1, 3, 4]
         exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
@@ -247,6 +245,7 @@ class VPSServerTestCase(unittest.TestCase):
         exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
         exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
         exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
+        '''
 
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/updatevps/878',
                                  'GET', 'miguel', 'python')

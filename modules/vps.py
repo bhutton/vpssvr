@@ -421,6 +421,7 @@ class VMFunc:
         if (Path == ""):
             Path = RootPath + "/" + str(ID)
 
+        #if Disks is not None:
         for Disk in Disks:
 
             if (Disk[2] == ""):
