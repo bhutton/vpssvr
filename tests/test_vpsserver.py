@@ -184,21 +184,16 @@ class VPSServerTestCase(unittest.TestCase):
 
         exec_function_ospathexists.return_value = process_mock
 
+        d = database.DatabaseVPS()
+        d.create_disk_in_database(878, 'mydisk', 1, 20, 878)
+        d.create_disk_in_database(879, 'mydisk', 1, 20, 878)
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/createdisk/878',
                                  'GET', 'miguel', 'python')
-        assert b'Create Disk for VPS 1' in rv.data
+        assert b'Create Disk for VPS 878' in rv.data
 
     @patch('subprocess.Popen')
-    #@patch('modules.database.DatabaseVPS')
-    #@patch('flaskext.mysql.MySQL.connect')
-    def test_delete_disk(self,
-                         #mysql_connector,
-                         #exec_function_dbconnect,
-                         exec_function_fileopen):
-
-        #exec_function_dbconnect().get_disk.return_value = [1, 1, 3, 4]
-        #exec_function_dbconnect().getPath.return_value = \
-        #    dir_path + '/../../vpsman-dev'
+    def test_delete_disk(self, exec_function_fileopen):
 
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'success')}
@@ -206,21 +201,12 @@ class VPSServerTestCase(unittest.TestCase):
 
         exec_function_fileopen.return_value = process_mock
 
-        #mysql_connector.return_value.connect.return_value = None
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
                                  'GET', 'miguel', 'python')
         print(rv.data)
         assert b'Disk 878 Delete' in rv.data
 
-    def test_delete_disk_no_image_found(self):
-        d = database.DatabaseVPS()
-        d.create_disk_in_database(878,'mydisk',1,20,878)
-        d.create_disk_in_database(879, 'mydisk', 1, 20, 878)
-
-        rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/deletedisk/878',
-                                 'GET', 'miguel', 'python')
-        assert(b'An error occurred generating script' in rv.data)
-
+    
     def test_delete(self):
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/delete/878',
                                  'GET', 'miguel', 'python')

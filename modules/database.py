@@ -244,22 +244,26 @@ class DatabaseVPS:
         return (VPS[0])
 
     def get_disk(self, id):
-        self.cnx = db_connector.connect()
+        '''self.cnx = db_connector.connect()
         self.cursor = self.cnx.cursor()
 
         self.cursor.execute("select size,vps_id from disk where id=%s", (id,))
-        return self.cursor.fetchone()
+        return self.cursor.fetchone()'''
+
+        print("select size,vps_id from disk where id=" + str(id))
+
+        return self.d.db_get_row("select size,vps_id from disk where id=" + str(id))
 
     def get_disks_details_from_database(self, id):
         #self.cursor.execute("select id,size,name from disk where vps_id=%s", (id,))
         #return self.cursor.fetchall()
 
-        self.d.db_get_all("select id,size,name from disk where vps_id=" + str(id))
+        return self.d.db_get_all("select id,size,name from disk where vps_id=" + str(id))
 
     def delete_disk_from_database(self, id):
         #self.cursor.execute("delete from disk where id=%s", (id,))
         #self.cnx.commit()
-        self.d.db_execute_query("delete from disk where id=" + str(id))
+        return self.d.db_execute_query("delete from disk where id=" + str(id))
 
     def create_disk_in_database(self, id, name, ord, size, vps_id):
         query = "insert into disk values(" + \
