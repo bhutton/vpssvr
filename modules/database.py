@@ -50,16 +50,17 @@ class DatabaseConnectivity():
             return 'an error occured'
 
     def initialise_database(self):
-        self.cursor.execute("create table disk(id int, name text, ord int, size int, vps_id int)")
-        self.cursor.execute("insert into disk values(878,'test',1,20,878)")
-
-        self.cursor.execute("CREATE TABLE vps (id int,name text,description text,ram int,console int,image int,path text,startscript text,stopscript text)")
-        self.cursor.execute("insert into vps values(878,'test','mytest',512,1,1,'/tmp/','start','stop')")
-
+        self.cursor.execute("CREATE TABLE disk(id int, name text, ord int, size int, vps_id int)")
+        self.cursor.execute("CREATE TABLE vps "
+                            "(id int,name text,description text,"
+                            "ram int,console int,image int,path text,"
+                            "startscript text,stopscript text)")
         self.cursor.execute("CREATE TABLE interface(bridge_id int,device int,id int,vps_id int)")
         self.cursor.execute("CREATE TABLE bridge(device int,id int)")
         self.cursor.execute("CREATE TABLE console(device int, id int)")
 
+        self.cursor.execute("INSERT INTO vps VALUES(878,'test','mytest',512,1,1,'/tmp/','start','stop')")
+        self.cursor.execute("INSERT INTO disk VALUES(878,'test',1,20,878)")
 
     def db_connect_mysql(self):
         try:
@@ -246,22 +247,22 @@ class DatabaseVPS:
     def get_vps_memory(self):
         return (self.memory)
 
-    def getConsole(self):
+    def get_console(self):
         return (self.console_number)
 
-    def getImage(self):
+    def get_image(self):
         return (self.image)
 
-    def getPath(self):
+    def get_path(self):
         return (self.file_system_path)
 
-    def getStartScript(self):
+    def get_start_script(self):
         return (self.start_script_file)
 
-    def getStopScript(self):
+    def get_stop_script(self):
         return (self.stop_script_path)
 
-    def startCommand(self, RootPath):
+    def start_command(self, RootPath):
         vps_id = str(self.vps[0])
         vps_name = self.vps[1]
         vps_ram = self.vps[2]
@@ -275,7 +276,7 @@ class DatabaseVPS:
 
         return ("/bin/sh " + vps_path + "/" + vps_startscript)
 
-    def stopCommand(self, RootPath):
+    def stop_command(self, RootPath):
 
         vps_id = str(self.vps[0])
         vps_name = self.vps[1]
@@ -290,7 +291,7 @@ class DatabaseVPS:
 
         return ("/bin/sh " + vps_path + "/" + vps_stopscript)
 
-    def stopConsole(self, root_path):
+    def stop_console(self, root_path):
         vps_id = str(self.vps[0])
         return ("sh " + root_path + "/" + vps_id + "/stopconsole.sh")
 

@@ -14,28 +14,28 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 Config = configparser.ConfigParser()
 Config.read("{}/../configuration.cfg".format(dir_path))
 
-ShellInABoxPref = Config.get('Global', 'ShellInABoxPref')
-RootPath = Config.get('Global', 'RootPath')
-BasePath = Config.get('Global', 'BasePath')
-ShellInABox = Config.get('Global', 'ShellInABox')
-SrcImgFreeBSD = Config.get('Global', 'SrcImgFreeBSD')
-SrcImgCentos = Config.get('Global', 'SrcImgCentos')
-SrcImgDebian = Config.get('Global', 'SrcImgDebian')
-SrcImgUbuntu = Config.get('Global', 'SrcImgUbuntu')
-SrcImgWin10 = Config.get('Global', 'SrcImgWin10')
-Bhyvectl = Config.get('Global', 'Bhyvectl')
-PIDFile = Config.get('Global', 'PIDFile')
-LogFile = Config.get('Global', 'LogFile')
-HOST = str(Config.get('Global', 'HOST'))
-PORT = int(Config.get('Global', 'PORT'))
-PassString = Config.get('Global', 'PassString')
-ZFSEnable = int(Config.get('Global', 'ZFSEnable'))
-ZFSRoot = Config.get('Global', 'ZFSRoot')
-ZFSCmd = Config.get('Global', 'ZFSCmd')
-IFConfig = Config.get('Global', 'IFConfig')
-Touch = Config.get('Global', 'Touch')
-CP = Config.get('Global', 'CP')
-RM = Config.get('Global', 'RM')
+shell_in_a_box_prefix = Config.get('Global', 'ShellInABoxPref')
+root_path = Config.get('Global', 'RootPath')
+base_path = Config.get('Global', 'BasePath')
+shell_in_a_box_command = Config.get('Global', 'ShellInABox')
+freebsd_image_path = Config.get('Global', 'SrcImgFreeBSD')
+centos_image_path = Config.get('Global', 'SrcImgCentos')
+debian_image_path = Config.get('Global', 'SrcImgDebian')
+ubuntu_image_path = Config.get('Global', 'SrcImgUbuntu')
+windows10_image_path = Config.get('Global', 'SrcImgWin10')
+bhyvectl_path = Config.get('Global', 'Bhyvectl')
+pid_file_path = Config.get('Global', 'PIDFile')
+log_file_path = Config.get('Global', 'LogFile')
+host_address = str(Config.get('Global', 'HOST'))
+port = int(Config.get('Global', 'PORT'))
+password_string = Config.get('Global', 'PassString')
+zfs_enable = int(Config.get('Global', 'ZFSEnable'))
+zfs_root_path = Config.get('Global', 'ZFSRoot')
+zfs_command_path = Config.get('Global', 'ZFSCmd')
+ifconfig_command_path = Config.get('Global', 'IFConfig')
+touch_command_path = Config.get('Global', 'Touch')
+copy_command_path = Config.get('Global', 'CP')
+delete_command_path = Config.get('Global', 'RM')
 
 database_user = Config.get('Database', 'database_user')
 database_password = Config.get('Database', 'database_password')
@@ -78,24 +78,24 @@ class VMFunctions:
 
         self.log = ''
 
-        self.FreeBSD = 1
-        self.Ubuntu = 2
-        self.Centos = 3
-        self.Win10 = 4
+        self.freebsd = 1
+        self.ubuntu = 2
+        self.centos = 3
+        self.win10 = 4
         self.status = ''
 
-    def check_security(self):
+    '''def check_security(self):
 
         if (PassString == self.Auth):
             return "Pass"
         else:
-            return "Fail"
+            return "Fail"'''
 
     def get_status(self):
         return (self.status)
 
     def get_network_status(self, id):
-        output = self.execute_command(IFConfig + ' tap' + format(id) + ' | grep UP')
+        output = self.execute_command(ifconfig_command_path + ' tap' + format(id) + ' | grep UP')
 
         if (output == ""):
             output = "DOWN"
@@ -105,13 +105,13 @@ class VMFunctions:
         return output
 
     def stop_network(self, id):
-        output, error = self.execute_command(IFConfig +
+        output, error = self.execute_command(ifconfig_command_path +
                                     ' tap' + format(id) +
                                     ' down')
         return output
 
     def start_network(self, id):
-        output, error = self.execute_command(IFConfig + ' tap' + format(id) + ' up')
+        output, error = self.execute_command(ifconfig_command_path + ' tap' + format(id) + ' up')
 
         return output
 
@@ -123,13 +123,13 @@ class VMFunctions:
 
     def logentry(self, data):
         try:
-            f = open(LogFile, 'a')
+            f = open(log_file_path, 'a')
             f.write(data)
             f.close()
         except:
-            return "Error with ".format(LogFile)
+            return "Error with ".format(log_file_path)
 
-    def execbhyve(self, command, ID):
+    def execute_bhyve_command(self, command, ID):
         self.command = command
         self.id = ID
 
@@ -137,7 +137,7 @@ class VMFunctions:
             pid = os.fork()
 
             if (pid == 0):
-                self.id = RootPath + self.id
+                self.id = root_path + self.id
                 args = ("-c", self.command, self.id)
                 proc = Popen(['/bin/sh', '-c', self.command, '999'],
                              cwd=self.id,
@@ -177,9 +177,9 @@ class VMFunctions:
 
             if (snapshot == ""): snapshot = str(time.time())
 
-            self.command = ZFSCmd + ' snapshot ' + ZFSRoot + '/' + str(id) + '@' + str(snapshot)
+            self.command = zfs_command_path + ' snapshot ' + zfs_root_path + '/' + str(id) + '@' + str(snapshot)
 
-            self.id = RootPath + str(id)
+            self.id = root_path + str(id)
 
             proc = subprocess.Popen(['/bin/sh', '-c', self.command],
                                     stdout=subprocess.PIPE,
@@ -195,8 +195,8 @@ class VMFunctions:
     def list_snapshots(self, id):
 
         try:
-            self.command = ZFSCmd + ' list -rt snapshot ' + ZFSRoot + '/' + str(id)
-            self.id = RootPath + str(id)
+            self.command = zfs_command_path + ' list -rt snapshot ' + zfs_root_path + '/' + str(id)
+            self.id = root_path + str(id)
 
             proc = subprocess.Popen(['/bin/sh', '-c', self.command],
                                     stdout=subprocess.PIPE,
@@ -211,7 +211,7 @@ class VMFunctions:
     def restore_snapshot(self, id, snapshot):
 
         try:
-            self.command = ZFSCmd + ' rollback ' + snapshot
+            self.command = zfs_command_path + ' rollback ' + snapshot
 
             proc = subprocess.Popen(['/bin/sh', '-c', self.command],
                                     stdout=subprocess.PIPE,
@@ -226,7 +226,7 @@ class VMFunctions:
 
     def remove_snapshot(self, id, snapshot):
 
-        self.command = ZFSCmd + ' destroy ' + snapshot
+        self.command = zfs_command_path + ' destroy ' + snapshot
 
         proc = subprocess.Popen(['/bin/sh', '-c', self.command],
                                 stdout=subprocess.PIPE,
@@ -236,8 +236,8 @@ class VMFunctions:
         return "Snapshot Removed"
 
     def restart_console(self, id):
-        stopconsole = "sh " + RootPath + "/" + str(id) + "/stopconsole.sh"
-        startconsole = "sh " + RootPath + "/" + str(id) + "/startconsole.sh"
+        stopconsole = "sh " + root_path + "/" + str(id) + "/stopconsole.sh"
+        startconsole = "sh " + root_path + "/" + str(id) + "/startconsole.sh"
 
         output = subprocess.Popen(['/bin/sh', '-c', stopconsole], stdout=subprocess.PIPE)
 
@@ -267,7 +267,7 @@ class VMFunctions:
             self.status = "Running"
             return "Running"
         else:
-            if (os.path.exists(RootPath + str(vps_id) + "/installing.txt")):
+            if (os.path.exists(root_path + str(vps_id) + "/installing.txt")):
                 return "Installing"
 
             self.status = "Stopped"
@@ -278,22 +278,22 @@ class VMFunctions:
     def start_vps(self, id):
         VPS_DB = database.DatabaseVPS()
         VPS_DB.get_vps_details(id)
-        self.execbhyve(VPS_DB.startCommand(RootPath), str(id))
+        self.execute_bhyve_command(VPS_DB.start_command(root_path), str(id))
         return "Started VPS {}\n".format(id)
 
     def stop_vps(self, id):
         VPS_DB = database.DatabaseVPS()
         VPS_DB.get_vps_details(id)
-        self.execbhyve(VPS_DB.stopCommand(RootPath), str(id))
-        self.execbhyve(VPS_DB.stopConsole(RootPath), str(id))
+        self.execute_bhyve_command(VPS_DB.stop_command(root_path), str(id))
+        self.execute_bhyve_command(VPS_DB.stop_console(root_path), str(id))
         return "Stopped VPS {}\n".format(id)
 
     def delete_vps(self, id):
-        PathOrig = RootPath + str(id)
-        PathDest = RootPath + "deleted/" + str(id)
+        PathOrig = root_path + str(id)
+        PathDest = root_path + "deleted/" + str(id)
 
-        if (ZFSEnable == 1):
-            cmd = ZFSCmd + " destroy " + ZFSRoot + "/" + str(id)
+        if (zfs_enable == 1):
+            cmd = zfs_command_path + " destroy " + zfs_root_path + "/" + str(id)
             output, error = self.execute_command(cmd)
             return error
         else:
@@ -320,7 +320,7 @@ class VMFunctions:
         Bhyve = "/usr/sbin/bhyve -A -H -P -s 0:0,hostbridge -s 1:0,lpc {} {} -l com1,/dev/nmdm{}A -c 4 -m {} {} &\n".format(
             NetInt, Drives, Console, RAM, ID)
         ShellInABox = "/usr/local/bin/shellinaboxd -t --service='/shell':'root':'wheel':'/root':'/usr/bin/cu -l /dev/nmdm{}B' --port={}{}".format(
-            Console, ShellInABoxPref, ID)
+            Console, shell_in_a_box_prefix, ID)
         GrubBhyve = "/usr/local/sbin/grub-bhyve -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path, RAM, ID)
         GrubBhyve2 = "/usr/local/sbin/grub-bhyve -d /grub2 -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path, RAM,ID)
 
@@ -356,7 +356,7 @@ class VMFunctions:
         LinuxBoot = ''
 
         if (Path == ""):
-            Path = RootPath + "/" + str(ID)
+            Path = root_path + "/" + str(ID)
 
         #if Disks is not None:
 
@@ -385,14 +385,14 @@ class VMFunctions:
         ID = vps.get_vps_id()
         Name = vps.get_vps_name()
         RAM = vps.get_vps_memory()
-        Console = vps.getConsole()
-        Image = vps.getImage()
-        Path = vps.getPath()
+        Console = vps.get_console()
+        Image = vps.get_image()
+        Path = vps.get_path()
         Disks = vps.get_disks_details_from_database(id)
         Devices = vps.get_devices(id)
 
         if (Path == ""):
-            Path = RootPath + "/" + str(ID)
+            Path = root_path + "/" + str(ID)
 
         Interface = 2
 
@@ -401,7 +401,7 @@ class VMFunctions:
         BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
                                                                                             Drives, Console, ID, Path)
 
-        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref, ID)
+        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, ID)
         Network = "/sbin/ifconfig "
 
         DstImg = Path + "/" + "disk.img"
@@ -409,15 +409,15 @@ class VMFunctions:
         SrcImg = self.set_image_path(Image)
 
         if not os.path.exists(Path):
-            if (ZFSEnable == 1):
-                cmd = ZFSCmd + " create " + ZFSRoot + "/" + str(ID)
+            if (zfs_enable == 1):
+                cmd = zfs_command_path + " create " + zfs_root_path + "/" + str(ID)
                 self.execute_command(cmd)
             else:
                 os.makedirs(Path)
 
         if (self.createDisk == "on"):
-            cmd = Touch + " " + RootPath + str(
-                ID) + "/installing.txt" + " && " + CP + " " + SrcImg + " " + BootDrive + " && " + RM + " " + RootPath + str(
+            cmd = touch_command_path + " " + root_path + str(
+                ID) + "/installing.txt" + " && " + copy_command_path + " " + SrcImg + " " + BootDrive + " && " + delete_command_path + " " + root_path + str(
                 ID) + "/installing.txt"
 
             self.fork_and_execute_command(cmd)
@@ -428,23 +428,23 @@ class VMFunctions:
             StopConsole = "{}/stopconsole.sh".format(Path)
             DeviceMapScript = "{}/device.map".format(Path)
 
-            if (Image == self.FreeBSD):
+            if (Image == self.freebsd):
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
-            elif (Image == self.Ubuntu):
+            elif (Image == self.ubuntu):
                 DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
                 self.create_script(DeviceMapScript, DevicemapData)
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
-            elif (Image == self.Centos):
+            elif (Image == self.centos):
                 DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
                 self.create_script(DeviceMapScript, DevicemapData)
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
-            elif (Image == self.Win10):
+            elif (Image == self.win10):
                 StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
 
 
-            StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl, ID)
+            StopScriptData = "{} --destroy --vm={}\n".format(bhyvectl_path, ID)
             StartConsoleScript = ShellInABox
             StopConsoleScript = StopShellInABox
 
@@ -456,14 +456,14 @@ class VMFunctions:
         return "Created VPS: {}\n".format(id)
 
     def set_image_path(self, Image):
-        if (Image == self.FreeBSD):
-            SrcImg = SrcImgFreeBSD
-        elif (Image == self.Ubuntu):
-            SrcImg = SrcImgUbuntu
-        elif (Image == self.Centos):
-            SrcImg = SrcImgCentos
-        elif (Image == self.Win10):
-            SrcImg = SrcImgWin10
+        if (Image == self.freebsd):
+            SrcImg = freebsd_image_path
+        elif (Image == self.ubuntu):
+            SrcImg = ubuntu_image_path
+        elif (Image == self.centos):
+            SrcImg = centos_image_path
+        elif (Image == self.win10):
+            SrcImg = windows10_image_path
 
         return SrcImg
 
@@ -475,21 +475,21 @@ class VMFunctions:
         ID = vps.get_vps_id()
         Name = vps.get_vps_name()
         RAM = vps.get_vps_memory()
-        Console = vps.getConsole()
-        Image = vps.getImage()
-        Path = vps.getPath()
-        StartScript = vps.getStartScript()
-        StopScript = vps.getStopScript()
+        Console = vps.get_console()
+        Image = vps.get_image()
+        Path = vps.get_path()
+        StartScript = vps.get_start_script()
+        StopScript = vps.get_stop_script()
 
         Disks = vps.get_disks_details_from_database(vps_id)
 
         if (Path == ""):
-            VPSPath = RootPath + str(vps_id)
+            VPSPath = root_path + str(vps_id)
         else:
             VPSPath = Path
 
         Devices = vps.get_devices(vps_id)
-        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(ShellInABoxPref, ID)
+        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, ID)
 
         Interface = 2
 
@@ -505,7 +505,7 @@ class VMFunctions:
         StartConsole = "{}/startconsole.sh".format(VPSPath)
         StopConsole = "{}/stopconsole.sh".format(VPSPath)
 
-        StopScriptData = "{} --destroy --vm={}\n".format(Bhyvectl, ID)
+        StopScriptData = "{} --destroy --vm={}\n".format(bhyvectl_path, ID)
 
         # FreeBSD
         if (Image == 1):
@@ -554,18 +554,18 @@ class VMFunctions:
         ID = vps.get_vps_id()
         Name = vps.get_vps_name()
         RAM = vps.get_vps_memory()
-        Console = vps.getConsole()
-        Image = vps.getImage()
-        Path = vps.getPath()
-        StartScript = vps.getStartScript()
-        StopScript = vps.getStopScript()
+        Console = vps.get_console()
+        Image = vps.get_image()
+        Path = vps.get_path()
+        StartScript = vps.get_start_script()
+        StopScript = vps.get_stop_script()
 
         # return "Create Disk for VPS 1\n"
 
         Disks = vps.get_disks_details_from_database(vps_id)
 
         if (Path == ""):
-            VPSPath = RootPath + "/" + str(vps_id)
+            VPSPath = root_path + "/" + str(vps_id)
         else:
             VPSPath = Path
 
@@ -576,23 +576,23 @@ class VMFunctions:
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
         BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, Path)
 
-        create_disk = "truncate -s {}GB {}/{}/{}".format(size, RootPath, vps_id, id)
+        create_disk = "truncate -s {}GB {}/{}/{}".format(size, root_path, vps_id, id)
         output = subprocess.Popen(['/bin/sh', '-c', create_disk], stdout=subprocess.PIPE)
 
         BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
                                                                                             Drives, Console, ID, VPSPath)
 
-        StartScript = "{}{}/start.sh".format(RootPath, vps_id)
+        StartScript = "{}{}/start.sh".format(root_path, vps_id)
 
         # FreeBSD
-        if (Image == self.FreeBSD):
+        if (Image == self.freebsd):
             # return "Create Disk for VPS 1\n"
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
-        elif (Image == self.Ubuntu):
+        elif (Image == self.ubuntu):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
-        elif (Image == self.Centos):
+        elif (Image == self.centos):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
         self.create_script(StartScript, StartScriptData)
@@ -610,14 +610,14 @@ class VMFunctions:
         ID = vps.get_vps_id()
         Name = vps.get_vps_name()
         RAM = vps.get_vps_memory()
-        Console = vps.getConsole()
-        Image = vps.getImage()
-        Path = vps.getPath()
-        StartScript = vps.getStartScript()
-        StopScript = vps.getStopScript()
+        Console = vps.get_console()
+        Image = vps.get_image()
+        Path = vps.get_path()
+        StartScript = vps.get_start_script()
+        StopScript = vps.get_stop_script()
 
         if (Path == ""):
-            VPSPath = RootPath + "/" + str(vps_id)
+            VPSPath = root_path + "/" + str(vps_id)
         else:
             VPSPath = Path
 
@@ -652,13 +652,13 @@ class VMFunctions:
         StartScript = "{}/start.sh".format(VPSPath)
 
         # FreeBSD
-        if (Image == self.FreeBSD):
+        if (Image == self.freebsd):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
-        elif (Image == self.Ubuntu):
+        elif (Image == self.ubuntu):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
-        elif (Image == self.Centos):
+        elif (Image == self.centos):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
 
         StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
