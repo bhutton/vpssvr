@@ -51,6 +51,15 @@ class DatabaseConnectivity():
 
     def initialise_database(self):
         self.cursor.execute("create table disk(id int, name text, ord int, size int, vps_id int)")
+        self.cursor.execute("insert into disk values(878,'test',1,20,878)")
+
+        self.cursor.execute("CREATE TABLE vps (id int,name text,description text,ram int,console int,image int,path text,startscript text,stopscript text)")
+        self.cursor.execute("insert into vps values(878,'test','mytest',512,1,1,'/tmp/','start','stop')")
+
+        self.cursor.execute("CREATE TABLE interface(bridge_id int,device int,id int,vps_id int)")
+        self.cursor.execute("CREATE TABLE bridge(device int,id int)")
+        self.cursor.execute("CREATE TABLE console(device int, id int)")
+
 
     def db_connect_mysql(self):
         try:
