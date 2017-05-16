@@ -42,11 +42,15 @@ class DatabaseConnectivity():
 
     def db_connect_sqlite(self):
         try:
-            self.cnx = sqlite.connect("/tmp/database.db")
+            self.cnx = sqlite.connect(":memory:")
             self.cursor = self.cnx.cursor()
+            self.initialise_database()
             return 'connection successful'
         except:
             return 'an error occured'
+
+    def initialise_database(self):
+        self.cursor.execute("create table disk(id int, name text, ord int, size int, vps_id int)")
 
     def db_connect_mysql(self):
         try:
@@ -280,3 +284,4 @@ class DatabaseVPS:
     def stopConsole(self, root_path):
         vps_id = str(self.vps[0])
         return ("sh " + root_path + "/" + vps_id + "/stopconsole.sh")
+
