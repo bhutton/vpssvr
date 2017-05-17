@@ -316,15 +316,36 @@ class VMFunctions:
             return "Error occurred generating script".format(self.file)
 
     def generate_bhyve_commands(self, RAM, BootDrive, Name, NetInt, Drives, Console, ID, Path):
-        BhyveLoad = "/usr/sbin/bhyveload -m {} -d {} {}\n".format(RAM, BootDrive, ID)
-        Bhyve = "/usr/sbin/bhyve -A -H -P -s 0:0,hostbridge -s 1:0,lpc {} {} -l com1,/dev/nmdm{}A -c 4 -m {} {} &\n".format(
-            NetInt, Drives, Console, RAM, ID)
-        ShellInABox = "/usr/local/bin/shellinaboxd -t --service='/shell':'root':'wheel':'/root':'/usr/bin/cu -l /dev/nmdm{}B' --port={}{}".format(
-            Console, shell_in_a_box_prefix, ID)
-        GrubBhyve = "/usr/local/sbin/grub-bhyve -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path, RAM, ID)
-        GrubBhyve2 = "/usr/local/sbin/grub-bhyve -d /grub2 -m {}/device.map -r hd0,msdos1 -M {} {}".format(Path, RAM,ID)
 
-        return (BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox)
+        self.bhyve_load_command = "/usr/sbin/bhyveload -m {} " \
+                             "-d {} {}\n".format(RAM, BootDrive, ID)
+        self.bhyve_command = "/usr/sbin/bhyve -A -H -P " \
+                        "-s 0:0,hostbridge " \
+                        "-s 1:0,lpc {} {} " \
+                        "-l com1,/dev/nmdm{}A " \
+                        "-c 4 -m {} {} &\n".\
+                        format(NetInt, Drives, Console, RAM, ID)
+        self.shell_in_a_box = "/usr/local/bin/shellinaboxd " \
+                         "-t --service='/shell':'root':'wheel'" \
+                         ":'/root':'/usr/bin/cu " \
+                         "-l /dev/nmdm{}B' " \
+                         "--port={}{}".\
+                         format(Console, shell_in_a_box_prefix, ID)
+        self.grub_bhyve_command = "/usr/local/sbin/grub-bhyve " \
+                             "-m {}/device.map " \
+                             "-r hd0,msdos1 " \
+                             "-M {} {}".format(Path, RAM, ID)
+        self.grub_bhyve2_command = "/usr/local/sbin/grub-bhyve " \
+                              "-d /grub2 " \
+                              "-m {}/device.map " \
+                              "-r hd0,msdos1 -M {} {}".\
+                              format(Path, RAM,ID)
+
+        return (self.bhyve_load_command,
+                self.grub_bhyve_command,
+                self.grub_bhyve2_command,
+                self.bhyve_command,
+                self.shell_in_a_box)
 
     def generate_devices(self, Devices, Interface):
         Count = 0
@@ -398,8 +419,8 @@ class VMFunctions:
 
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
         BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, Path)
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
-                                                                                            Drives, Console, ID, Path)
+        #BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = \
+        self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,Drives, Console, ID, Path)
 
         StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, ID)
         Network = "/sbin/ifconfig "
@@ -429,18 +450,18 @@ class VMFunctions:
             DeviceMapScript = "{}/device.map".format(Path)
 
             if (Image == self.freebsd):
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.bhyve_load_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
             elif (Image == self.ubuntu):
                 DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
                 self.create_script(DeviceMapScript, DevicemapData)
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.grub_bhyve_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
 
             elif (Image == self.centos):
                 DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
                 self.create_script(DeviceMapScript, DevicemapData)
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.grub_bhyve2_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
             elif (Image == self.win10):
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
+                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.bhyve_load_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
 
 
 
