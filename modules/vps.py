@@ -84,6 +84,8 @@ class VMFunctions:
         self.win10 = 4
         self.status = ''
 
+        self.vps = database.DatabaseVPS()
+
     '''def check_security(self):
 
         if (PassString == self.Auth):
@@ -256,8 +258,7 @@ class VMFunctions:
     def check_vps_status(self, vps_id):
         self.id = vps_id
 
-        VPS_Conn = database.DatabaseVPS()
-        VPS = VPS_Conn.get_vps_details(self.id)
+        VPS = self.vps.get_vps_details(self.id)
 
         vps_startscript = VPS[5]
 
@@ -276,16 +277,14 @@ class VMFunctions:
 
 
     def start_vps(self, id):
-        VPS_DB = database.DatabaseVPS()
-        VPS_DB.get_vps_details(id)
-        self.execute_bhyve_command(VPS_DB.start_command(root_path), str(id))
+        self.vps.get_vps_details(id)
+        self.execute_bhyve_command(self.vps.start_command(root_path), str(id))
         return "Started VPS {}\n".format(id)
 
     def stop_vps(self, id):
-        VPS_DB = database.DatabaseVPS()
-        VPS_DB.get_vps_details(id)
-        self.execute_bhyve_command(VPS_DB.stop_command(root_path), str(id))
-        self.execute_bhyve_command(VPS_DB.stop_console(root_path), str(id))
+        self.vps.get_vps_details(id)
+        self.execute_bhyve_command(self.vps.stop_command(root_path), str(id))
+        self.execute_bhyve_command(self.vps.stop_console(root_path), str(id))
         return "Stopped VPS {}\n".format(id)
 
     def delete_vps(self, id):
@@ -466,16 +465,15 @@ class VMFunctions:
         return "Created VPS: {}\n".format(id)
 
     def get_vps_details(self, id):
-        vps = database.DatabaseVPS()
-        vps.get_vps_details(id)
-        vps_id = vps.get_vps_id()
-        vps_name = vps.get_vps_name()
-        vps_memory = vps.get_vps_memory()
-        vps_console_number = vps.get_console()
-        vps_image_id = vps.get_image()
-        vps_path = vps.get_path()
-        vps_attached_disks = vps.get_disks_details_from_database(id)
-        vps_attached_network_devices = vps.get_devices(id)
+        self.vps.get_vps_details(id)
+        vps_id = self.vps.get_vps_id()
+        vps_name = self.vps.get_vps_name()
+        vps_memory = self.vps.get_vps_memory()
+        vps_console_number = self.vps.get_console()
+        vps_image_id = self.vps.get_image()
+        vps_path = self.vps.get_path()
+        vps_attached_disks = self.vps.get_disks_details_from_database(id)
+        vps_attached_network_devices = self.vps.get_devices(id)
         return vps_attached_disks, vps_attached_network_devices, vps_console_number, vps_id, vps_image_id, vps_memory, vps_name, vps_path
 
     def set_image_path(self, image_id):
@@ -492,95 +490,108 @@ class VMFunctions:
 
     def update_vps(self, vps_id):
 
-        vps = database.DatabaseVPS()
-        vps.get_vps_details(vps_id)
+        self.vps.get_vps_details(vps_id)
 
-        vps_id = vps.get_vps_id()
-        vps_name = vps.get_vps_name()
-        vps_memory = vps.get_vps_memory()
-        vps_console_id = vps.get_console()
-        vps_image_id = vps.get_image()
-        vps_path = vps.get_path()
-        vps_attached_disks = vps.get_disks_details_from_database(vps_id)
+        vps_id = self.vps.get_vps_id()
+        vps_name = self.vps.get_vps_name()
+        vps_memory = self.vps.get_vps_memory()
+        vps_console_id = self.vps.get_console()
+        vps_image_id = self.vps.get_image()
+        vps_path = self.vps.get_path()
+        vps_attached_disks = self.vps.get_disks_details_from_database(vps_id)
+
+
+
 
         if (vps_path == ""):
             vps_path = root_path + str(vps_id)
 
-        vps_network_devices = vps.get_devices(vps_id)
-        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, vps_id)
+        vps_network_devices = self.vps.get_devices(vps_id)
+        stop_shell_in_a_box = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, vps_id)
 
-        Interface = 2
+        interface = 2
 
-        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(vps_network_devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(vps_attached_disks, Interface, vps_id, vps_path)
+        network_interface, add_tap_device, delete_tap_device, add_bridge_interfaces, interface = self.generate_devices(vps_network_devices, interface)
+        boot_drive, attached_drives, interface, linux_boot_drive = self.generate_disks(vps_attached_disks, interface, vps_id, vps_path)
 
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(vps_memory, BootDrive, vps_name, NetInt,
-                                                                                            Drives, vps_console_id, vps_id, vps_path)
+        bhyve_load_command, grub_bhyve_load_command, \
+        grub2_bhyve_load_command, bhyve_command, \
+        shell_in_a_box_command = self.generate_bhyve_commands(
+                    vps_memory,
+                    boot_drive,
+                    vps_name,
+                    network_interface,
+                    attached_drives,
+                    vps_console_id,
+                    vps_id, vps_path)
 
-        StartScript = "{}/start.sh".format(vps_path)
-        StopScript = "{}/stop.sh".format(vps_path)
-        DeviceMapScript = "{}/device.map".format(vps_path)
-        StartConsole = "{}/startconsole.sh".format(vps_path)
-        StopConsole = "{}/stopconsole.sh".format(vps_path)
+        start_script_path = "{}/start.sh".format(vps_path)
+        stop_script_path = "{}/stop.sh".format(vps_path)
+        device_map_script = "{}/device.map".format(vps_path)
+        start_console_path = "{}/startconsole.sh".format(vps_path)
+        stop_console_script_path = "{}/stopconsole.sh".format(vps_path)
 
-        StopScriptData = "{} --destroy --vm={}\n".format(bhyvectl_path, vps_id)
+        stop_script_data = "{} --destroy --vm={}\n".format(bhyvectl_path, vps_id)
 
-        # FreeBSD
-        if (vps_image_id == 1):
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
+        start_script_data = self.generate_script_data(add_bridge_interfaces, add_tap_device, bhyve_command,
+                                                    bhyve_load_command, device_map_script, grub2_bhyve_load_command,
+                                                    grub_bhyve_load_command, linux_boot_drive, shell_in_a_box_command,
+                                                    vps_image_id, vps_path)
 
-        # Ubuntu
-        elif (vps_image_id == 2):
-            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, LinuxBoot)
+        start_console_script = shell_in_a_box_command
+        stop_console_script = stop_shell_in_a_box
 
-            self.create_script(DeviceMapScript, DevicemapData)
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
+        self.create_script(start_console_path, start_console_script)
+        self.create_script(stop_console_script_path, stop_console_script)
 
-        # Centos
-        elif (vps_image_id == 3):
-
-            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, LinuxBoot)
-
-            self.create_script(DeviceMapScript, DevicemapData)
-
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
-
-        else:
-            return "Error: no image specified"
-
-        StartConsoleScript = ShellInABox
-        StopConsoleScript = StopShellInABox
-
-        self.create_script(StartConsole, StartConsoleScript)
-        self.create_script(StopConsole, StopConsoleScript)
-
-        self.create_script(StartScript, StartScriptData)
-        self.create_script(StopScript, StopScriptData)
+        self.create_script(start_script_path, start_script_data)
+        self.create_script(stop_script_path, stop_script_data)
 
         return "VPS {} Updated\n".format(vps_id)
 
+    def generate_script_data(self, add_bridge_interfaces, add_tap_device, bhyve_command, bhyve_load_command,
+                             device_map_script, grub2_bhyve_load_command, grub_bhyve_load_command, linux_boot_drive,
+                             shell_in_a_box_command, vps_image_id, vps_path):
+        if vps_image_id is self.freebsd:
+            return "{}\n{}\n{}\n{}\n{}\n".format(add_tap_device, bhyve_load_command, bhyve_command,
+                                                            add_bridge_interfaces, shell_in_a_box_command)
+        elif vps_image_id is self.ubuntu:
+            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, linux_boot_drive)
+            self.create_script(device_map_script, DevicemapData)
+            return "{}\n{}\n{}\n{}\n{}\n".format(add_tap_device, grub_bhyve_load_command, bhyve_command,
+                                                            add_bridge_interfaces, shell_in_a_box_command)
+        elif vps_image_id is self.centos:
+            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, linux_boot_drive)
+            self.create_script(device_map_script, DevicemapData)
+            return "{}\n{}\n{}\n{}\n{}\n".format(add_tap_device, grub2_bhyve_load_command, bhyve_command,
+                                                            add_bridge_interfaces, shell_in_a_box_command)
+
+
+
     def create_disk_image(self, id):
-        vps = database.DatabaseVPS()
-        Disk = vps.get_disk(id)
+        Disk = self.vps.get_disk(id)
 
         vps_id = Disk[1]
         size = Disk[0]
         Interface = 2
 
-        vps.get_vps_details(vps_id)
+        self.vps.get_vps_details(vps_id)
 
-        ID = vps.get_vps_id()
-        Name = vps.get_vps_name()
-        RAM = vps.get_vps_memory()
-        Console = vps.get_console()
-        Image = vps.get_image()
-        Path = vps.get_path()
-        StartScript = vps.get_start_script()
-        StopScript = vps.get_stop_script()
+        ID = self.vps.get_vps_id()
+        Name = self.vps.get_vps_name()
+        RAM = self.vps.get_vps_memory()
+        Console = self.vps.get_console()
+        Image = self.vps.get_image()
+        Path = self.vps.get_path()
+        StartScript = self.vps.get_start_script()
+        StopScript = self.vps.get_stop_script()
+
+        vps_attached_disks, vps_attached_network_devices, vps_console_number, vps_id, vps_image_id, vps_memory, vps_name, vps_path = self.get_vps_details(
+            id)
 
         # return "Create Disk for VPS 1\n"
 
-        Disks = vps.get_disks_details_from_database(vps_id)
+        Disks = self.vps.get_disks_details_from_database(vps_id)
 
         if (Path == ""):
             VPSPath = root_path + "/" + str(vps_id)
@@ -589,7 +600,7 @@ class VMFunctions:
 
         SrcImg = self.set_image_path(Image)
 
-        Devices = vps.get_devices(vps_id)
+        Devices = self.vps.get_devices(vps_id)
 
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
         BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, Path)
@@ -619,20 +630,18 @@ class VMFunctions:
 
     def delete_disk(self, id):
 
-        vps = database.DatabaseVPS()
+        vps_id = self.vps.get_vps_id_associated_with_disk(id)
 
-        vps_id = vps.get_vps_id_associated_with_disk(id)
+        self.vps.get_vps_details(vps_id)
 
-        vps.get_vps_details(vps_id)
-
-        ID = vps.get_vps_id()
-        Name = vps.get_vps_name()
-        RAM = vps.get_vps_memory()
-        Console = vps.get_console()
-        Image = vps.get_image()
-        Path = vps.get_path()
-        StartScript = vps.get_start_script()
-        StopScript = vps.get_stop_script()
+        ID = self.vps.get_vps_id()
+        Name = self.vps.get_vps_name()
+        RAM = self.vps.get_vps_memory()
+        Console = self.vps.get_console()
+        Image = self.vps.get_image()
+        Path = self.vps.get_path()
+        StartScript = self.vps.get_start_script()
+        StopScript = self.vps.get_stop_script()
 
         if (Path == ""):
             VPSPath = root_path + "/" + str(vps_id)
@@ -648,7 +657,7 @@ class VMFunctions:
             # return process.returncode
             return "Delete disk failed"
 
-        vps.delete_disk_from_database(id)
+        self.vps.delete_disk_from_database(id)
 
         ####
         #
@@ -656,8 +665,8 @@ class VMFunctions:
         #
         ####
 
-        Disks = vps.get_disks_details_from_database(vps_id)
-        Devices = vps.get_devices(vps_id)
+        Disks = self.vps.get_disks_details_from_database(vps_id)
+        Devices = self.vps.get_devices(vps_id)
 
         Interface = 2
 
