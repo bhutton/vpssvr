@@ -73,7 +73,7 @@ class VMFunctions:
             Snapshot = ""
 
         self.command = Command
-        self.createDisk = createDisk
+        self.create_disk_selected = createDisk
         self.snapShot = Snapshot
 
         self.log = ''
@@ -400,149 +400,146 @@ class VMFunctions:
 
     def create_vps(self, id):
 
-        vps = database.DatabaseVPS()
-        vps.get_vps_details(id)
+        vps_attached_disks, vps_attached_network_devices, vps_console_number, vps_id, vps_image_id, vps_memory, vps_name, vps_path = self.get_vps_details(
+            id)
 
-        ID = vps.get_vps_id()
-        Name = vps.get_vps_name()
-        RAM = vps.get_vps_memory()
-        Console = vps.get_console()
-        Image = vps.get_image()
-        Path = vps.get_path()
-        Disks = vps.get_disks_details_from_database(id)
-        Devices = vps.get_devices(id)
+        if (vps_path == ""):
+            vps_path = root_path + "/" + str(vps_id)
 
-        if (Path == ""):
-            Path = root_path + "/" + str(ID)
+        interface = 2
 
-        Interface = 2
-
-        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, Path)
+        network_interfaces, network_tap_devices, del_taps, network_bridge_devices, interface = self.generate_devices(vps_attached_network_devices, interface)
+        boot_drive, drives, interface, linux_boot_device = self.generate_disks(vps_attached_disks, interface, vps_id, vps_path)
         #BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = \
-        self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,Drives, Console, ID, Path)
+        self.generate_bhyve_commands(vps_memory, boot_drive, vps_name, network_interfaces,drives, vps_console_number, vps_id, vps_path)
 
-        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, ID)
-        Network = "/sbin/ifconfig "
+        stop_shell_in_a_box_command = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, vps_id)
+        #ifconfig_command = "/sbin/ifconfig "
 
-        DstImg = Path + "/" + "disk.img"
+        #destination_image_path = Path + "/" + "disk.img"
 
-        SrcImg = self.set_image_path(Image)
+        source_image_path = self.set_image_path(vps_image_id)
 
-        if not os.path.exists(Path):
+        if not os.path.exists(vps_path):
             if (zfs_enable == 1):
-                cmd = zfs_command_path + " create " + zfs_root_path + "/" + str(ID)
+                cmd = zfs_command_path + " create " + zfs_root_path + "/" + str(vps_id)
                 self.execute_command(cmd)
             else:
-                os.makedirs(Path)
+                os.makedirs(vps_path)
 
-        if (self.createDisk == "on"):
+        if (self.create_disk_selected == "on"):
             cmd = touch_command_path + " " + root_path + str(
-                ID) + "/installing.txt" + " && " + copy_command_path + " " + SrcImg + " " + BootDrive + " && " + delete_command_path + " " + root_path + str(
-                ID) + "/installing.txt"
+                vps_id) + "/installing.txt" + " && " + copy_command_path + " " + source_image_path + " " + boot_drive + " && " + delete_command_path + " " + root_path + str(
+                vps_id) + "/installing.txt"
 
             self.fork_and_execute_command(cmd)
 
-            StartScript = "{}/start.sh".format(Path)
-            StopScript = "{}/stop.sh".format(Path)
-            StartConsole = "{}/startconsole.sh".format(Path)
-            StopConsole = "{}/stopconsole.sh".format(Path)
-            DeviceMapScript = "{}/device.map".format(Path)
+            start_script = "{}/start.sh".format(vps_path)
+            stop_script = "{}/stop.sh".format(vps_path)
+            start_console = "{}/startconsole.sh".format(vps_path)
+            stop_console = "{}/stopconsole.sh".format(vps_path)
+            device_map_script = "{}/device.map".format(vps_path)
 
-            if (Image == self.freebsd):
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.bhyve_load_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
-            elif (Image == self.ubuntu):
-                DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
-                self.create_script(DeviceMapScript, DevicemapData)
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.grub_bhyve_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
+            if (vps_image_id == self.freebsd):
+                start_script_data = "{}\n{}\n{}\n{}\n{}\n".format(network_tap_devices, self.bhyve_load_command, self.bhyve_command, network_bridge_devices, self.shell_in_a_box)
+            elif (vps_image_id == self.ubuntu):
+                devicemap_data = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, linux_boot_device)
+                self.create_script(device_map_script, devicemap_data)
+                start_script_data = "{}\n{}\n{}\n{}\n{}\n".format(network_tap_devices, self.grub_bhyve_command, self.bhyve_command, network_bridge_devices, self.shell_in_a_box)
 
-            elif (Image == self.centos):
-                DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(Path, LinuxBoot)
-                self.create_script(DeviceMapScript, DevicemapData)
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.grub_bhyve2_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
-            elif (Image == self.win10):
-                StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.bhyve_load_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
+            elif (vps_image_id == self.centos):
+                devicemap_data = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, linux_boot_device)
+                self.create_script(device_map_script, devicemap_data)
+                start_script_data = "{}\n{}\n{}\n{}\n{}\n".format(network_tap_devices, self.grub_bhyve2_command, self.bhyve_command, network_bridge_devices, self.shell_in_a_box)
+            elif (vps_image_id == self.win10):
+                start_script_data = "{}\n{}\n{}\n{}\n{}\n".format(network_tap_devices, self.bhyve_load_command, self.bhyve_command, network_bridge_devices, self.shell_in_a_box)
 
+            stop_script_data = "{} --destroy --vm={}\n".format(bhyvectl_path, vps_id)
+            start_console_script = self.shell_in_a_box
+            stop_console_script = stop_shell_in_a_box_command
 
-
-            StopScriptData = "{} --destroy --vm={}\n".format(bhyvectl_path, ID)
-            StartConsoleScript = ShellInABox
-            StopConsoleScript = StopShellInABox
-
-            self.create_script(StartScript, StartScriptData)
-            self.create_script(StopScript, StopScriptData)
-            self.create_script(StartConsole, StartConsoleScript)
-            self.create_script(StopConsole, StopConsoleScript)
+            self.create_script(start_script, start_script_data)
+            self.create_script(stop_script, stop_script_data)
+            self.create_script(start_console, start_console_script)
+            self.create_script(stop_console, stop_console_script)
 
         return "Created VPS: {}\n".format(id)
 
-    def set_image_path(self, Image):
-        if (Image == self.freebsd):
-            SrcImg = freebsd_image_path
-        elif (Image == self.ubuntu):
-            SrcImg = ubuntu_image_path
-        elif (Image == self.centos):
-            SrcImg = centos_image_path
-        elif (Image == self.win10):
-            SrcImg = windows10_image_path
+    def get_vps_details(self, id):
+        vps = database.DatabaseVPS()
+        vps.get_vps_details(id)
+        vps_id = vps.get_vps_id()
+        vps_name = vps.get_vps_name()
+        vps_memory = vps.get_vps_memory()
+        vps_console_number = vps.get_console()
+        vps_image_id = vps.get_image()
+        vps_path = vps.get_path()
+        vps_attached_disks = vps.get_disks_details_from_database(id)
+        vps_attached_network_devices = vps.get_devices(id)
+        return vps_attached_disks, vps_attached_network_devices, vps_console_number, vps_id, vps_image_id, vps_memory, vps_name, vps_path
 
-        return SrcImg
+    def set_image_path(self, image_id):
+        if (image_id == self.freebsd):
+            source_image_path = freebsd_image_path
+        elif (image_id == self.ubuntu):
+            source_image_path = ubuntu_image_path
+        elif (image_id == self.centos):
+            source_image_path = centos_image_path
+        elif (image_id == self.win10):
+            source_image_path = windows10_image_path
+
+        return source_image_path
 
     def update_vps(self, vps_id):
 
         vps = database.DatabaseVPS()
         vps.get_vps_details(vps_id)
 
-        ID = vps.get_vps_id()
-        Name = vps.get_vps_name()
-        RAM = vps.get_vps_memory()
-        Console = vps.get_console()
-        Image = vps.get_image()
-        Path = vps.get_path()
-        StartScript = vps.get_start_script()
-        StopScript = vps.get_stop_script()
+        vps_id = vps.get_vps_id()
+        vps_name = vps.get_vps_name()
+        vps_memory = vps.get_vps_memory()
+        vps_console_id = vps.get_console()
+        vps_image_id = vps.get_image()
+        vps_path = vps.get_path()
+        vps_attached_disks = vps.get_disks_details_from_database(vps_id)
 
-        Disks = vps.get_disks_details_from_database(vps_id)
+        if (vps_path == ""):
+            vps_path = root_path + str(vps_id)
 
-        if (Path == ""):
-            VPSPath = root_path + str(vps_id)
-        else:
-            VPSPath = Path
-
-        Devices = vps.get_devices(vps_id)
-        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, ID)
+        vps_network_devices = vps.get_devices(vps_id)
+        StopShellInABox = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, vps_id)
 
         Interface = 2
 
-        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, ID, VPSPath)
+        NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(vps_network_devices, Interface)
+        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(vps_attached_disks, Interface, vps_id, vps_path)
 
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(RAM, BootDrive, Name, NetInt,
-                                                                                            Drives, Console, ID, VPSPath)
+        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands(vps_memory, BootDrive, vps_name, NetInt,
+                                                                                            Drives, vps_console_id, vps_id, vps_path)
 
-        StartScript = "{}/start.sh".format(VPSPath)
-        StopScript = "{}/stop.sh".format(VPSPath)
-        DeviceMapScript = "{}/device.map".format(VPSPath)
-        StartConsole = "{}/startconsole.sh".format(VPSPath)
-        StopConsole = "{}/stopconsole.sh".format(VPSPath)
+        StartScript = "{}/start.sh".format(vps_path)
+        StopScript = "{}/stop.sh".format(vps_path)
+        DeviceMapScript = "{}/device.map".format(vps_path)
+        StartConsole = "{}/startconsole.sh".format(vps_path)
+        StopConsole = "{}/stopconsole.sh".format(vps_path)
 
-        StopScriptData = "{} --destroy --vm={}\n".format(bhyvectl_path, ID)
+        StopScriptData = "{} --destroy --vm={}\n".format(bhyvectl_path, vps_id)
 
         # FreeBSD
-        if (Image == 1):
+        if (vps_image_id == 1):
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
 
         # Ubuntu
-        elif (Image == 2):
-            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath, LinuxBoot)
+        elif (vps_image_id == 2):
+            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, LinuxBoot)
 
             self.create_script(DeviceMapScript, DevicemapData)
             StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
 
         # Centos
-        elif (Image == 3):
+        elif (vps_image_id == 3):
 
-            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(VPSPath, LinuxBoot)
+            DevicemapData = "(hd0) {}/{}\n(cd0) .\n".format(vps_path, LinuxBoot)
 
             self.create_script(DeviceMapScript, DevicemapData)
 
