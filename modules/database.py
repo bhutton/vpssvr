@@ -12,25 +12,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 class DatabaseConnectivity:
 
     def __init__(self):
-        # Get database configurations from configuration.cfg
-        configuration = configparser.ConfigParser()
-        configuration.read("{}/../configuration.cfg".format(dir_path))
-
-        self.database_driver = configuration.get('Database', 'database_driver')
-        database_user = configuration.get('Database', 'database_user')
-        database_password = configuration.get('Database', 'database_password')
-        database_host = configuration.get('Database', 'database_host')
-        database_name = configuration.get('Database', 'database_name')
-        raise_on_warnings = configuration.get('Database', 'raise_on_warnings')
-
-        if self.database_driver is 'mysql':
-            app.config['MYSQL_DATABASE_USER'] = database_user
-            app.config['MYSQL_DATABASE_PASSWORD'] = database_password
-            app.config['MYSQL_DATABASE_DB'] = database_name
-            app.config['MYSQL_DATABASE_HOST'] = database_host
-
-
-        self.cursor = None
+        self.configuration = configparser.ConfigParser()
+        self.configuration.read("{}/../configuration.cfg".format(dir_path))
+        self.database_driver = self.configuration.get('Database', 'database_driver')
         self.db_connection()
 
     def __del__(self):
@@ -46,12 +30,12 @@ class DatabaseConnectivity:
         try:
             self.cnx = sqlite.connect(":memory:")
             self.cursor = self.cnx.cursor()
-            self.initialise_database()
+            self.initialise_sqlite_database()
             return 'connection successful'
         except:
             return 'an error occured'
 
-    def initialise_database(self):
+    def initialise_sqlite_database(self):
         self.cursor.execute("CREATE TABLE disk(id int, name text, ord int, size int, vps_id int)")
         self.cursor.execute("CREATE TABLE vps "
                             "(id int,name text,description text,"
@@ -66,6 +50,17 @@ class DatabaseConnectivity:
 
     def db_connect_mysql(self):
         try:
+            self.database_user = self.configuration.get('Database', 'database_user')
+            self.database_password = self.configuration.get('Database', 'database_password')
+            self.database_host = self.configuration.get('Database', 'database_host')
+            self.database_name = self.configuration.get('Database', 'database_name')
+            self.raise_on_warnings = self.configuration.get('Database', 'raise_on_warnings')
+
+            app.config['MYSQL_DATABASE_USER'] = self.database_user
+            app.config['MYSQL_DATABASE_PASSWORD'] = self.database_password
+            app.config['MYSQL_DATABASE_DB'] = self.database_name
+            app.config['MYSQL_DATABASE_HOST'] = self.database_host
+
             db_connector = MySQL()
             db_connector.init_app(app)
             self.cnx = db_connector.connect()
