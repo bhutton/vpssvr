@@ -171,7 +171,7 @@ class VMFunc:
 		VPS_DB = database.DB_VPS()
 		VPS = VPS_DB.get_vps_details(id)
 
-		self.execbhyve(VPS_DB.startCommand(RootPath),str(id))
+		self.execbhyve(VPS_DB.start_command(RootPath), str(id))
 
 		return "Started VPS {}\n".format(id)
 
@@ -181,8 +181,8 @@ class VMFunc:
 		VPS = VPS_DB.get_vps_details(id)
 
 		#VPS_Con = modules.vps.VMFunc()
-		self.execbhyve(VPS_DB.stopCommand(RootPath),str(id))
-		self.execbhyve(VPS_DB.stopConsole(RootPath),str(id))
+		self.execbhyve(VPS_DB.stop_command(RootPath), str(id))
+		self.execbhyve(VPS_DB.stop_console(RootPath), str(id))
 
 		return "Stopped VPS {}\n".format(id)
 
@@ -275,11 +275,11 @@ class VMFunc:
 		ID 			= vps.get_vps_id()
 		Name 		= vps.get_vps_name()
 		RAM 		= vps.get_vps_memory()
-		Console 	= vps.getConsole()
-		Image 		= vps.getImage()
-		Path 		= vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript 	= vps.getStopScript()
+		Console 	= vps.get_console()
+		Image 		= vps.get_image()
+		Path 		= vps.get_path()
+		StartScript = vps.get_start_script()
+		StopScript 	= vps.get_stop_script()
 		Disks 		= vps.get_disks_details_from_database(id)
 		Devices 	= vps.get_devices(id)
 
@@ -358,11 +358,11 @@ class VMFunc:
 		ID = vps.get_vps_id()
 		Name = vps.get_vps_name()
 		RAM = vps.get_vps_memory()
-		Console = vps.getConsole()
-		Image = vps.getImage()
-		Path = vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript = vps.getStopScript()
+		Console = vps.get_console()
+		Image = vps.get_image()
+		Path = vps.get_path()
+		StartScript = vps.get_start_script()
+		StopScript = vps.get_stop_script()
 
 		Disks = vps.get_disks_details_from_database(vps_id)
 
@@ -442,11 +442,11 @@ class VMFunc:
 		ID = vps.get_vps_id()
 		Name = vps.get_vps_name()
 		RAM = vps.get_vps_memory()
-		Console = vps.getConsole()
-		Image = vps.getImage()
-		Path = vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript = vps.getStopScript()
+		Console = vps.get_console()
+		Image = vps.get_image()
+		Path = vps.get_path()
+		StartScript = vps.get_start_script()
+		StopScript = vps.get_stop_script()
 
 
 		Disks = vps.get_disks_details_from_database(vps_id)
@@ -498,11 +498,11 @@ class VMFunc:
 		ID = vps.get_vps_id()
 		Name = vps.get_vps_name()
 		RAM = vps.get_vps_memory()
-		Console = vps.getConsole()
-		Image = vps.getImage()
-		Path = vps.getPath()
-		StartScript = vps.getStartScript()
-		StopScript = vps.getStopScript()
+		Console = vps.get_console()
+		Image = vps.get_image()
+		Path = vps.get_path()
+		StartScript = vps.get_start_script()
+		StopScript = vps.get_stop_script()
 		
 
 		if (Path == ""): VPSPath = RootPath + "/" + str(vps_id)

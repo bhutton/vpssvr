@@ -88,10 +88,10 @@ class DatabaseConnectivity():
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
-class DatabaseNetwork:
+class DatabaseNetwork(DatabaseConnectivity):
     def __init__(self):
-        d = DatabaseConnectivity(database_driver)
-        self.cursor = d.db_return_cursor()
+        #d = DatabaseConnectivity()
+        self.cursor = self.db_return_cursor()
 
     def __exit__(self):
         try:
@@ -100,10 +100,6 @@ class DatabaseNetwork:
             self.cnx.close()
         except:
             print("Error closing database")
-
-
-
-
 
     def get_database_connection_status(self):
         return self.database_connected
@@ -128,7 +124,7 @@ class DatabaseNetwork:
         return self.row
 
 
-class DatabaseVPS:
+class DatabaseVPS(DatabaseConnectivity):
     vps = []
 
     def __init__(self):
@@ -145,9 +141,9 @@ class DatabaseVPS:
         self.cursor = self.d.db_return_cursor()
 
     def db_connection(self, database_driver):
-        if database_driver == 'mysql':
+        if database_driver is 'mysql':
             return self.db_connect_mysql()
-        if database_driver == 'sqlite':
+        if database_driver is 'sqlite':
             return self.db_connect_sqlite()
 
     def db_connect_sqlite(self):
