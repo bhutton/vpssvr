@@ -155,7 +155,6 @@ class VMFunctions:
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
                                 close_fds=True)
-
         output, error = proc.communicate()
 
         return (output, error)
@@ -168,21 +167,16 @@ class VMFunctions:
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT,
                                     close_fds=True)
-
             os._exit(0)
 
             output, error = proc.communicate()
 
     def take_snapshot_of_vps(self, id, snapshot):
-
         try:
-
             if (snapshot == ""): snapshot = str(time.time())
 
             self.command = zfs_command_path + ' snapshot ' + zfs_root_path + '/' + str(id) + '@' + str(snapshot)
-
             self.id = root_path + str(id)
-
             proc = subprocess.Popen(['/bin/sh', '-c', self.command],
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT,
@@ -288,16 +282,16 @@ class VMFunctions:
         return "Stopped VPS {}\n".format(id)
 
     def delete_vps(self, id):
-        PathOrig = root_path + str(id)
-        PathDest = root_path + "deleted/" + str(id)
+        source_path = root_path + str(id)
+        destination_path = root_path + "deleted/" + str(id)
 
         if (zfs_enable == 1):
             cmd = zfs_command_path + " destroy " + zfs_root_path + "/" + str(id)
             output, error = self.execute_command(cmd)
             return error
         else:
-            if os.path.exists(PathOrig):
-                return os.renames(PathOrig, PathDest)
+            if os.path.exists(source_path):
+                return os.renames(source_path, destination_path)
             else:
                 return "Disk doesn't exist"
 
