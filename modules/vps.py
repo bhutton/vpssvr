@@ -11,37 +11,37 @@ import time
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Get VPS configurations from configuration.cfg
-Config = configparser.ConfigParser()
-Config.read("{}/../configuration.cfg".format(dir_path))
+vps_configuration = configparser.ConfigParser()
+vps_configuration.read("{}/../configuration.cfg".format(dir_path))
 
-shell_in_a_box_prefix = Config.get('Global', 'ShellInABoxPref')
-root_path = Config.get('Global', 'RootPath')
-base_path = Config.get('Global', 'BasePath')
-shell_in_a_box_command = Config.get('Global', 'ShellInABox')
-freebsd_image_path = Config.get('Global', 'SrcImgFreeBSD')
-centos_image_path = Config.get('Global', 'SrcImgCentos')
-debian_image_path = Config.get('Global', 'SrcImgDebian')
-ubuntu_image_path = Config.get('Global', 'SrcImgUbuntu')
-windows10_image_path = Config.get('Global', 'SrcImgWin10')
-bhyvectl_path = Config.get('Global', 'Bhyvectl')
-pid_file_path = Config.get('Global', 'PIDFile')
-log_file_path = Config.get('Global', 'LogFile')
-host_address = str(Config.get('Global', 'HOST'))
-port = int(Config.get('Global', 'PORT'))
-password_string = Config.get('Global', 'PassString')
-zfs_enable = int(Config.get('Global', 'ZFSEnable'))
-zfs_root_path = Config.get('Global', 'ZFSRoot')
-zfs_command_path = Config.get('Global', 'ZFSCmd')
-ifconfig_command_path = Config.get('Global', 'IFConfig')
-touch_command_path = Config.get('Global', 'Touch')
-copy_command_path = Config.get('Global', 'CP')
-delete_command_path = Config.get('Global', 'RM')
+shell_in_a_box_prefix = vps_configuration.get('Global', 'ShellInABoxPref')
+root_path = vps_configuration.get('Global', 'RootPath')
+base_path = vps_configuration.get('Global', 'BasePath')
+shell_in_a_box_command = vps_configuration.get('Global', 'ShellInABox')
+freebsd_image_path = vps_configuration.get('Global', 'SrcImgFreeBSD')
+centos_image_path = vps_configuration.get('Global', 'SrcImgCentos')
+debian_image_path = vps_configuration.get('Global', 'SrcImgDebian')
+ubuntu_image_path = vps_configuration.get('Global', 'SrcImgUbuntu')
+windows10_image_path = vps_configuration.get('Global', 'SrcImgWin10')
+bhyvectl_path = vps_configuration.get('Global', 'Bhyvectl')
+pid_file_path = vps_configuration.get('Global', 'PIDFile')
+log_file_path = vps_configuration.get('Global', 'LogFile')
+host_address = str(vps_configuration.get('Global', 'HOST'))
+port = int(vps_configuration.get('Global', 'PORT'))
+password_string = vps_configuration.get('Global', 'PassString')
+zfs_enable = int(vps_configuration.get('Global', 'ZFSEnable'))
+zfs_root_path = vps_configuration.get('Global', 'ZFSRoot')
+zfs_command_path = vps_configuration.get('Global', 'ZFSCmd')
+ifconfig_command_path = vps_configuration.get('Global', 'IFConfig')
+touch_command_path = vps_configuration.get('Global', 'Touch')
+copy_command_path = vps_configuration.get('Global', 'CP')
+delete_command_path = vps_configuration.get('Global', 'RM')
 
-database_user = Config.get('Database', 'database_user')
-database_password = Config.get('Database', 'database_password')
-database_host = Config.get('Database', 'database_host')
-database_database = Config.get('Database', 'database_name')
-raise_on_warnings = str(Config.get('Database', 'raise_on_warnings'))
+database_user = vps_configuration.get('Database', 'database_user')
+database_password = vps_configuration.get('Database', 'database_password')
+database_host = vps_configuration.get('Database', 'database_host')
+database_database = vps_configuration.get('Database', 'database_name')
+raise_on_warnings = str(vps_configuration.get('Database', 'raise_on_warnings'))
 
 if (raise_on_warnings == "True"):
     raise_on_warnings = True
@@ -57,24 +57,27 @@ config = {
 }
 
 
-class VMFunctions:
+class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
     def __init__(self):
+        #super().__init__()
         self.id = ''
         Command = ''
 
-        try:
+        create_disk_on_vps_creation = 'no'
+        snapshot_name = ""
+
+        '''try:
             createDisk = Data[3]
         except:
             createDisk = "no"
-
         try:
             Snapshot = Data[3]
         except:
-            Snapshot = ""
+            Snapshot = ""'''
 
         self.command = Command
-        self.create_disk_selected = createDisk
-        self.snapShot = Snapshot
+        self.create_disk_selected = create_disk_on_vps_creation
+        self.snapShot = snapshot_name
 
         self.log = ''
 
