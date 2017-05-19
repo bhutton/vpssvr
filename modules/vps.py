@@ -314,23 +314,29 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
     def generate_bhyve_commands(self):
 
         self.bhyve_load_command = "/usr/sbin/bhyveload -m {} " \
-                             "-d {} {}\n".format(self.vps_memory, self.boot_drive, self.vps_id)
+                             "-d {} {}\n".format(self.vps_memory,
+                                                 self.boot_drive,
+                                                 self.vps_id)
         self.bhyve_command = "/usr/sbin/bhyve -A -H -P " \
                         "-s 0:0,hostbridge " \
                         "-s 1:0,lpc {} {} " \
                         "-l com1,/dev/nmdm{}A " \
                         "-c 4 -m {} {} &\n".\
-                        format(self.network_interface, self.attached_drives, self.vps_console_number, self.vps_memory, self.vps_id)
+                        format(self.network_interface, self.attached_drives,
+                               self.vps_console_number, self.vps_memory,
+                               self.vps_id)
         self.shell_in_a_box = "/usr/local/bin/shellinaboxd " \
                          "-t --service='/shell':'root':'wheel'" \
                          ":'/root':'/usr/bin/cu " \
                          "-l /dev/nmdm{}B' " \
                          "--port={}{}".\
-                         format(self.vps_console_number, shell_in_a_box_prefix, self.vps_id)
+                         format(self.vps_console_number, shell_in_a_box_prefix,
+                                self.vps_id)
         self.grub_bhyve_command = "/usr/local/sbin/grub-bhyve " \
                              "-m {}/device.map " \
                              "-r hd0,msdos1 " \
-                             "-M {} {}".format(self.vps_path, self.vps_memory, self.vps_id)
+                             "-M {} {}".format(self.vps_path, self.vps_memory,
+                                               self.vps_id)
         self.grub_bhyve2_command = "/usr/local/sbin/grub-bhyve " \
                               "-d /grub2 " \
                               "-m {}/device.map " \
@@ -403,7 +409,6 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
         network_interfaces, network_tap_devices, del_taps, network_bridge_devices, interface = self.generate_devices(self.vps_attached_network_devices, interface)
         boot_drive, drives, interface, linux_boot_device = self.generate_disks(self.vps_attached_disks, interface, vps_id, self.vps_path)
-        #BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = \
         self.generate_bhyve_commands()
 
         stop_shell_in_a_box_command = "/usr/bin/sockstat -4 -l | grep :{}{}".format(shell_in_a_box_prefix, vps_id)
@@ -504,9 +509,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         self.boot_drive, self.attached_drives, self.interface, self.linux_boot_drive = \
             self.generate_disks(self.vps_attached_disks, interface, vps_id, self.vps_path)
 
-        bhyve_load_command, grub_bhyve_load_command, \
-        grub2_bhyve_load_command, bhyve_command, \
-        shell_in_a_box_command = self.generate_bhyve_commands()
+        self.generate_bhyve_commands()
 
         start_script_path = "{}/start.sh".format(self.vps_path)
         stop_script_path = "{}/stop.sh".format(self.vps_path)
@@ -516,9 +519,9 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
         stop_script_data = "{} --destroy --vm={}\n".format(bhyvectl_path, vps_id)
 
-        start_script_data = self.generate_script_data(self.add_bridge_interfaces, self.add_tap_device, bhyve_command,
-                                                    bhyve_load_command, device_map_script, grub2_bhyve_load_command,
-                                                    grub_bhyve_load_command, self.linux_boot_drive, shell_in_a_box_command,
+        start_script_data = self.generate_script_data(self.add_bridge_interfaces, self.add_tap_device, self.bhyve_command,
+                                                    self.bhyve_load_command, device_map_script, self.grub_bhyve2_command,
+                                                    self.grub_bhyve_command, self.linux_boot_drive, shell_in_a_box_command,
                                                     self.vps_image_id, self.vps_path)
 
         start_console_script = shell_in_a_box_command
@@ -581,19 +584,17 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         create_disk = "truncate -s {}GB {}/{}/{}".format(size, root_path, vps_id, id)
         output = subprocess.Popen(['/bin/sh', '-c', create_disk], stdout=subprocess.PIPE)
 
-        bhyve_load_command, grub_bhyve_load_command, \
-        grub2_bhyve_load_command, bhyve_command, \
-        shell_in_a_box_command = self.generate_bhyve_commands()
+        self.generate_bhyve_commands()
 
         StartScript = "{}{}/start.sh".format(root_path, vps_id)
 
 
         if (self.vps_image_id == self.freebsd):
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(self.add_tap_device, bhyve_load_command, bhyve_command, self.add_bridge_interfaces, shell_in_a_box_command)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(self.add_tap_device, self.bhyve_load_command, self.bhyve_command, self.add_bridge_interfaces, shell_in_a_box_command)
         elif (self.vps_image_id == self.ubuntu):
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(self.add_tap_device, grub_bhyve_load_command, bhyve_command, self.add_bridge_interfaces, shell_in_a_box_command)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(self.add_tap_device, self.grub_bhyve_command, self.bhyve_command, self.add_bridge_interfaces, shell_in_a_box_command)
         elif (self.vps_image_id == self.centos):
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(self.add_tap_device, grub2_bhyve_load_command, bhyve_command, self.add_bridge_interfaces, shell_in_a_box_command)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(self.add_tap_device, self.grub2_bhyve_command, self.bhyve_command, self.add_bridge_interfaces, shell_in_a_box_command)
 
         self.create_script(StartScript, StartScriptData)
 
@@ -632,23 +633,23 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         Interface = 2
 
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
-        BootDrive, Drives, Interface, LinuxBoot = self.generate_disks(Disks, Interface, self.vps_id, self.vps_path)
+        self.generate_disks(Disks, Interface, self.vps_id, self.vps_path)
 
-        BhyveLoad, GrubBhyve, GrubBhyve2, Bhyve, ShellInABox = self.generate_bhyve_commands()
+        self.generate_bhyve_commands()
 
         StartScript = "{}/start.sh".format(self.vps_path)
 
         # FreeBSD
         if (self.vps_image_id == self.freebsd):
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.bhyve_load_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
 
         elif (self.vps_image_id == self.ubuntu):
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve, Bhyve, AddBridges, ShellInABox)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.grub_bhyve_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
 
         elif (self.vps_image_id == self.centos):
-            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, GrubBhyve2, Bhyve, AddBridges, ShellInABox)
+            StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.grub_bhyve2_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
 
-        StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, BhyveLoad, Bhyve, AddBridges, ShellInABox)
+        StartScriptData = "{}\n{}\n{}\n{}\n{}\n".format(AddTaps, self.bhyve_load_command, self.bhyve_command, AddBridges, self.shell_in_a_box)
 
         if (self.create_script(StartScript, StartScriptData)):
             return "An error occurred generating script"
