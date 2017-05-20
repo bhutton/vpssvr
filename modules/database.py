@@ -17,9 +17,6 @@ class DatabaseConnectivity:
         self.database_driver = self.configuration.get('Database', 'database_driver')
         self.db_connection()
 
-    def __del__(self):
-        self.cnx.close()
-
     def db_connection(self):
         if self.database_driver == 'mysql':
             return self.db_connect_mysql()
@@ -91,7 +88,6 @@ class DatabaseNetwork(DatabaseConnectivity):
 
     def __exit__(self):
         try:
-            self.cursor = self.cnx.cursor()
             self.cnx.close()
         except:
             print("Error closing database")
@@ -125,11 +121,10 @@ class DatabaseVPS(DatabaseConnectivity):
         super().__init__()
 
     def get_device(self, id):
-        return self.db_get_all(
-            "select interface.id,interface.device,"
-            "interface.vps_id,bridge.device "
-            "from interface,bridge where vps_id=%s "
-            "and interface.bridge_id = bridge.id")
+        get_device_sql_query = (
+            "select interface.id,interface.device,interface.vps_id,bridge.device "
+            "from interface,bridge where vps_id=%s and interface.bridge_id = bridge.id")
+        return self.db_get_all(get_device_sql_query)
 
     def get_devices(self, id):
         return self.db_get_all(
@@ -141,27 +136,25 @@ class DatabaseVPS(DatabaseConnectivity):
     def get_vps_id_associated_with_disk(self, id):
         VPS = self.db_get_row("select vps_id from disk where id=" + str(id))
 
-        return VPS[0]
+        return (VPS[0])
 
     def get_disk(self, id):
         return self.db_get_row("select size,vps_id from disk where id=" + str(id))
 
     def get_disks_details_from_database(self, id):
-        return self.db_get_all("select id,size,name "
-                               "from disk "
-                               "where vps_id=" + str(id))
+        return self.db_get_all("select id,size,name from disk where vps_id=" + str(id))
 
     def delete_disk_from_database(self, id):
-        return self.db_execute_query("delete from disk "
-                                     "where id=" + str(id))
+        return self.db_execute_query("delete from disk where id=" + str(id))
 
     def create_disk_in_database(self, id, name, ord, size, vps_id):
-        self.db_execute_query("insert into disk values(" + \
+        query = "insert into disk values(" + \
                 str(id) + ",'" + \
                 str(name) + "'," + \
                 str(ord) + "," + \
                 str(size) + "," + \
-                str(vps_id) + ")")
+                str(vps_id) + ")"
+        self.db_execute_query(query)
 
     def create_vps_in_database(self, id, name, description, ram, console, image, path, startscript, stopscript):
         return self.db_execute_query("insert into vps values(" + \
@@ -177,8 +170,7 @@ class DatabaseVPS(DatabaseConnectivity):
 
     def get_vps_details(self, id):
         self.vps = self.db_get_row(
-            "select id,name,ram,console,image,path,"
-            "startscript,stopscript "
+            "select id,name,ram,console,image,path,startscript,stopscript "
             "from vps where vps.id=" + str(id))
 
         self.id = self.vps[0]
@@ -216,24 +208,24 @@ class DatabaseVPS(DatabaseConnectivity):
     def get_stop_script(self):
         return (self.stop_script_path)
 
-    def start_command(self, root_path):
+    def start_command(self, RootPath):
         vps_id = str(self.vps[0])
         vps_path = self.vps[5]
         vps_startscript = self.vps[6]
 
         if (vps_startscript == ""): vps_startscript = "start.sh"
-        if (vps_path == ""): vps_path = root_path + "/" + vps_id
+        if (vps_path == ""): vps_path = RootPath + "/" + vps_id
 
         return ("/bin/sh " + vps_path + "/" + vps_startscript)
 
-    def stop_command(self, root_path):
+    def stop_command(self, RootPath):
         vps_id = str(self.vps[0])
         vps_path = self.vps[5]
         vps_startscript = self.vps[6]
         vps_stopscript = self.vps[7]
 
         if (vps_startscript == ""): vps_stopscript = "stop.sh"
-        if (vps_path == ""): vps_path = root_path + "/" + vps_id
+        if (vps_path == ""): vps_path = RootPath + "/" + vps_id
 
         return ("/bin/sh " + vps_path + "/" + vps_stopscript)
 
