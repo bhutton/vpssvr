@@ -13,9 +13,19 @@ class DatabaseConnectivity:
 
     def __init__(self):
         self.configuration = configparser.ConfigParser()
-        self.configuration.read("{}/../configuration.cfg".format(dir_path))
-        self.database_driver = self.configuration.get('Database', 'database_driver')
+        self.configuration.read(
+            "{}/../configuration.cfg".format(dir_path)
+        )
+        self.database_driver = self.configuration.get(
+            'Database', 'database_driver'
+        )
         self.db_connection()
+
+    def __exit__(self):
+        try:
+            self.cnx.close()
+        except:
+            print('failed to close database')
 
     def db_connection(self):
         if self.database_driver == 'mysql':
@@ -33,17 +43,28 @@ class DatabaseConnectivity:
             return 'an error occured'
 
     def initialise_sqlite_database(self):
-        self.cursor.execute("CREATE TABLE disk(id int, name text, ord int, size int, vps_id int)")
-        self.cursor.execute("CREATE TABLE vps "
-                            "(id int,name text,description text,"
-                            "ram int,console int,image int,path text,"
-                            "startscript text,stopscript text)")
-        self.cursor.execute("CREATE TABLE interface(bridge_id int,device int,id int,vps_id int)")
-        self.cursor.execute("CREATE TABLE bridge(device int,id int)")
-        self.cursor.execute("CREATE TABLE console(device int, id int)")
+        self.cursor.execute(
+                    "CREATE TABLE disk"
+                    "(id int, name text, ord int, "
+                    "size int, vps_id int)")
+        self.cursor.execute(
+                    "CREATE TABLE vps "
+                    "(id int,name text,description text,"
+                    "ram int,console int,image int,path text,"
+                    "startscript text,stopscript text)")
+        self.cursor.execute(
+                    "CREATE TABLE interface"
+                    "(bridge_id int,device int,id int,vps_id int)")
+        self.cursor.execute(
+                    "CREATE TABLE bridge(device int,id int)")
+        self.cursor.execute(
+                    "CREATE TABLE console(device int, id int)")
 
-        self.cursor.execute("INSERT INTO vps VALUES(878,'test','mytest',512,1,1,'/tmp/','start','stop')")
-        self.cursor.execute("INSERT INTO disk VALUES(878,'test',1,20,878)")
+        self.cursor.execute(
+                    "INSERT INTO vps VALUES(878,'test','mytest'"
+                    ",512,1,1,'/tmp/','start','stop')")
+        self.cursor.execute(
+                    "INSERT INTO disk VALUES(878,'test',1,20,878)")
 
     def db_connect_mysql(self):
         try:

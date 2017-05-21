@@ -1,37 +1,35 @@
 #!virtualenv/bin/python
 
-from flask import Flask, jsonify, abort, make_response
-from flask import Flask, render_template, json, request, redirect, session, g
-
+import configparser, os
+from flask import Flask, jsonify, make_response, g
 from flask_httpauth import HTTPBasicAuth
 import modules.vps as vps
 from sqlite3 import dbapi2 as sqlite3
 
 auth = HTTPBasicAuth()
-
 app = Flask(__name__)
 
-description = 'this description'
+dir_path = os.path.dirname(os.path.realpath(__file__))
+vps_configuration = configparser.ConfigParser()
+vps_configuration.read("{}/configuration.cfg".format(dir_path))
+
+host_address = vps_configuration.get('Global', 'HOST')
+debug_status = vps_configuration.get('Global', 'DEBUG')
 
 v = vps.VMFunctions()
 
 def connect_db():
-    """Connects to the specific database."""
     rv = sqlite3.connect(app.config['DATABASE'])
     rv.row_factory = sqlite3.Row
     return rv
 
 def init_db():
-    """Initializes the database."""
     db = get_db()
     with app.open_resource('schema.sql', mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
 
 def get_db():
-    """Opens a new database connection if there is none yet for the
-    current application context.
-    """
     if not hasattr(g, 'sqlite_db'):
         g.sqlite_db = connect_db()
     return g.sqlite_db
@@ -141,4 +139,4 @@ def get_start_network(vps_id):
     return jsonify({'status': v.start_network(vps_id).decode('utf-8')})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=debug_status, host=host_address)
