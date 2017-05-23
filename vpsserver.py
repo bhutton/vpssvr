@@ -15,6 +15,7 @@ vps_configuration.read("{}/configuration.cfg".format(dir_path))
 
 host_address = vps_configuration.get('Global', 'HOST')
 debug_status = vps_configuration.get('Global', 'DEBUG')
+server_port = int(vps_configuration.get('Global', 'PORT'))
 
 v = vps.VMFunctions()
 
@@ -103,20 +104,20 @@ def restart_console(vps_id):
 def updatevps(vps_id):
     return jsonify({'status': v.update_vps(vps_id)})
 
-@app.route('/vpssvr/api/v1.0/tasks/takeSnapshot/<int:vps_id>', methods=['GET'])
+@app.route('/vpssvr/api/v1.0/tasks/takeSnapshot/<int:vps_id>/<string:snapshot_name>', methods=['GET'])
 @auth.login_required
-def take_snapshot(vps_id):
-    return jsonify({'status': v.take_snapshot_of_vps(vps_id,'')})
+def take_snapshot(vps_id,snapshot_name):
+    return jsonify({'status': v.take_snapshot_of_vps(vps_id,snapshot_name)})
 
 @app.route('/vpssvr/api/v1.0/tasks/listSnapshot/<int:vps_id>', methods=['GET'])
 @auth.login_required
 def list_snapshot(vps_id):
     return jsonify({'status': v.list_snapshots(vps_id)})
 
-@app.route('/vpssvr/api/v1.0/tasks/restoreSnapshot/<int:vps_id>', methods=['GET'])
+@app.route('/vpssvr/api/v1.0/tasks/restoreSnapshot/<int:vps_id>/<string:snapshot_name>', methods=['GET'])
 @auth.login_required
-def restore_snapshot(vps_id):
-    return jsonify({'status': v.restore_snapshot(vps_id,'')})
+def restore_snapshot(vps_id,snapshot_name):
+    return jsonify({'status': v.restore_snapshot(vps_id,snapshot_name)})
 
 @app.route('/vpssvr/api/v1.0/tasks/removeSnapshot/<int:vps_id>', methods=['GET'])
 @auth.login_required
@@ -139,4 +140,4 @@ def get_start_network(vps_id):
     return jsonify({'status': v.start_network(vps_id).decode('utf-8')})
 
 if __name__ == '__main__':
-    app.run(debug=debug_status, host=host_address)
+    app.run(debug=debug_status, host=host_address, port=server_port)

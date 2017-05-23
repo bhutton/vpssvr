@@ -143,7 +143,7 @@ class VPSServerTestCase(unittest.TestCase):
         assert b'VPS 878 Updated' in rv.data
 
     def test_take_snapshot(self):
-        rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/takeSnapshot/878',
+        rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/takeSnapshot/878/test',
                                  'GET', 'miguel', 'python')
         assert b'Snapshot name' in rv.data
 
@@ -166,7 +166,7 @@ class VPSServerTestCase(unittest.TestCase):
         process_mock.configure_mock(**attrs)
         exec_function_popen.return_value = process_mock
 
-        rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/restoreSnapshot/878',
+        rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/restoreSnapshot/878/test',
                                  'GET', 'miguel', 'python')
         assert b'Snapshot name' in rv.data
 
