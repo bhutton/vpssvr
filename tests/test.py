@@ -80,7 +80,7 @@ class TestStartStop(unittest.TestCase):
             exec_function_dbconnect):
 
         exec_function_dbconnect.get_vps_details.return_value = '1'
-        exec_function_dbconnect.startCommand.return_value = '/usr/bin/sh this command'
+        exec_function_dbconnect.start_command.return_value = '/usr/bin/sh this command'
         exec_function_execbhyve.return_value = ''
 
         v = vps.VMFunc()
@@ -99,8 +99,8 @@ class TestStartStop(unittest.TestCase):
 
         # Stopping a VPS
         exec_function_dbconnect.get_vps_details.return_value = '1'
-        exec_function_dbconnect.stopCommand.return_value = '/usr/bin/sh this command'
-        exec_function_dbconnect.stopConsole.return_value = '/usr/bin/sh this command'
+        exec_function_dbconnect.stop_command.return_value = '/usr/bin/sh this command'
+        exec_function_dbconnect.stop_console.return_value = '/usr/bin/sh this command'
 
         exec_function_execbhyve.return_value = ''
 
@@ -124,11 +124,11 @@ class TestCreate(unittest.TestCase):
         exec_function_dbconnect().get_vps_id.return_value = '1'
         exec_function_dbconnect().get_vps_name.return_value = 'MyTestVPS'
         exec_function_dbconnect().get_vps_memory.return_value = '512'
-        exec_function_dbconnect().getConsole.return_value = 1
-        exec_function_dbconnect().getImage.return_value = 1
-        exec_function_dbconnect().getPath.return_value = '/Users/ben/repos/vpssvr'
-        exec_function_dbconnect().getStartScript.return_value = '/home/startme.sh'
-        exec_function_dbconnect().getStopScript.return_value = '/home/stopme.sh'
+        exec_function_dbconnect().get_console.return_value = 1
+        exec_function_dbconnect().get_image.return_value = 1
+        exec_function_dbconnect().get_path.return_value = '/Users/ben/repos/vpssvr'
+        exec_function_dbconnect().get_start_script.return_value = '/home/startme.sh'
+        exec_function_dbconnect().get_stop_script.return_value = '/home/stopme.sh'
         exec_function_ospathexists('/Users/ben/repos/vpssvr').return_value = ''
 
         v = vps.VMFunc()
@@ -152,7 +152,7 @@ class TestCreate(unittest.TestCase):
         process_mock.configure_mock(**attrs)
 
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
-        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().get_image.return_value = 1
         exec_function_genscript.return_value = 1
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -175,7 +175,7 @@ class TestDelete(unittest.TestCase):
         attrs = {'communicate.return_value': ('output', 'success')}
         process_mock.configure_mock(**attrs)
 
-        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().get_image.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
         exec_function_genscript.return_value = None
@@ -195,7 +195,7 @@ class TestDelete(unittest.TestCase):
         attrs = {'communicate.return_value': ('output', 'error')}
         process_mock.configure_mock(**attrs)
 
-        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().get_image.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
 
@@ -214,7 +214,7 @@ class TestDelete(unittest.TestCase):
         attrs = {'communicate.return_value': ('output', 'error')}
         process_mock.configure_mock(**attrs)
 
-        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().get_image.return_value = 1
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
 
         exec_function_subprocess_Popen.return_value = -1
@@ -236,11 +236,11 @@ class TestDelete(unittest.TestCase):
         attrs = {'communicate.return_value': ('output', 'success')}
         process_mock.configure_mock(**attrs)
 
-        exec_function_dbconnect().getImage.return_value = 999
+        exec_function_dbconnect().get_image.return_value = 999
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
         exec_function_subprocess_Popen.return_value = process_mock
         exec_function_genscript.return_value = None
-        exec_function_dbconnect().getImage.return_value = 999
+        exec_function_dbconnect().get_image.return_value = 999
 
         v = vps.VMFunc()
         assert(v.deleteDisk(1) == 'Error: no image found')
@@ -259,7 +259,7 @@ class TestDelete(unittest.TestCase):
         attrs = {'communicate.return_value': ('output', 'success')}
         process_mock.configure_mock(**attrs)
 
-        exec_function_dbconnect().getImage.return_value = 999
+        exec_function_dbconnect().get_image.return_value = 999
         exec_function_os_rename.return_value = process_mock
         exec_function_os_path_exists.return_value = process_mock
         exec_function_dbconnect().get_disk.return_value = (1, 1, 3)
@@ -301,7 +301,7 @@ class TestUpdateVPS(unittest.TestCase):
         attrs = {'communicate.return_value': ('output', 'success')}
         process_mock.configure_mock(**attrs)
 
-        exec_function_dbconnect().getImage.return_value = 1
+        exec_function_dbconnect().get_image.return_value = 1
         exec_function_subprocess_Popen.return_value = process_mock
         exec_function_genscript.return_value = None
 

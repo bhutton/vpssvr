@@ -19,6 +19,9 @@ class DatabaseConnectivity:
         self.database_driver = self.configuration.get(
             'Database', 'database_driver'
         )
+        self.database_host = self.configuration.get(
+            'Database', 'database_host'
+        )
         self.db_connection()
 
     def __exit__(self):
@@ -35,7 +38,7 @@ class DatabaseConnectivity:
 
     def db_connect_sqlite(self):
         try:
-            self.cnx = sqlite.connect(":memory:")
+            self.cnx = sqlite.connect(self.database_host)
             self.cursor = self.cnx.cursor()
             self.initialise_sqlite_database()
             return 'connection successful'
@@ -47,24 +50,30 @@ class DatabaseConnectivity:
                     "CREATE TABLE disk"
                     "(id int, name text, ord int, "
                     "size int, vps_id int)")
+        self.cnx.commit()
         self.cursor.execute(
                     "CREATE TABLE vps "
                     "(id int,name text,description text,"
                     "ram int,console int,image int,path text,"
                     "startscript text,stopscript text)")
+        self.cnx.commit()
         self.cursor.execute(
                     "CREATE TABLE interface"
                     "(bridge_id int,device int,id int,vps_id int)")
+        self.cnx.commit()
         self.cursor.execute(
                     "CREATE TABLE bridge(device int,id int)")
+        self.cnx.commit()
         self.cursor.execute(
                     "CREATE TABLE console(device int, id int)")
-
+        self.cnx.commit()
         self.cursor.execute(
                     "INSERT INTO vps VALUES(878,'test','mytest'"
                     ",512,1,1,'/tmp/','start','stop')")
+        self.cnx.commit()
         self.cursor.execute(
                     "INSERT INTO disk VALUES(878,'test',1,20,878)")
+        self.cnx.commit()
 
     def db_connect_mysql(self):
         try:

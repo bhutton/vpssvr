@@ -178,7 +178,11 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         try:
             if (snapshot == ""): snapshot = str(time.time())
 
-            self.command = zfs_command_path + ' snapshot ' + zfs_root_path + '/' + str(id) + '@' + str(snapshot)
+            self.command = zfs_command_path + \
+                           ' snapshot ' + \
+                           zfs_root_path + \
+                           '/' + str(id) + \
+                           '@' + str(snapshot)
             self.id = root_path + str(id)
             proc = subprocess.Popen(['/bin/sh', '-c', self.command],
                                     stdout=subprocess.PIPE,
@@ -343,11 +347,6 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                               "-r hd0,msdos1 -M {} {}".\
                               format(self.vps_path, self.vps_memory,self.vps_id)
 
-        return (self.bhyve_load_command,
-                self.grub_bhyve_command,
-                self.grub_bhyve2_command,
-                self.bhyve_command,
-                self.shell_in_a_box)
 
     def generate_devices(self, Devices, Interface):
         Count = 0
