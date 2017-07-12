@@ -487,12 +487,8 @@ class VMFunc:
 		return "Create Disk for VPS {}\n".format(vps_id)
 
 	def deleteDisk(self,id):
-		
 		vps = database.DB_VPS()
-
 		vps_id = vps.get_vps_id_associated_with_disk(id)
-
-				
 		vps.get_vps_details(vps_id)
 
 		ID = vps.get_vps_id()
