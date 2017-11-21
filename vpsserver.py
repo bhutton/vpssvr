@@ -16,6 +16,8 @@ vps_configuration.read("{}/configuration.cfg".format(dir_path))
 host_address = vps_configuration.get('Global', 'HOST')
 debug_status = vps_configuration.get('Global', 'DEBUG')
 server_port = int(vps_configuration.get('Global', 'PORT'))
+username = vps_configuration.get('Global', 'Username')
+username = vps_configuration.get('Global', 'Password')
 
 v = vps.VMFunctions()
 

@@ -89,13 +89,6 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
         self.vps = database.DatabaseVPS()
 
-    '''def check_security(self):
-
-        if (PassString == self.Auth):
-            return "Pass"
-        else:
-            return "Fail"'''
-
     def get_status(self):
         return (self.status)
 
