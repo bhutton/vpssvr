@@ -175,10 +175,21 @@ class VPSServerTestCase(unittest.TestCase):
                                  'GET', 'miguel', 'python')
         assert b'Snapshot Removed' in rv.data
 
-    def test_get_network_status(self):
+    @patch('modules.vps.VMFunctions.execute_command')
+    def test_get_network_status(self, exec_function):
+
+        exec_function.return_value = ''
+
+        rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/netStatus/878',
+                                 'GET', 'miguel', 'python')
+        assert b'DOWN' in rv.data
+
+        exec_function.return_value = 'tap112: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> metric 0 mtu 1500'
+
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/netStatus/878',
                                  'GET', 'miguel', 'python')
         assert b'UP' in rv.data
+
 
     def test_stop_network(self):
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/netStop/878',
