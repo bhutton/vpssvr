@@ -5,7 +5,7 @@ import tempfile
 import base64
 import modules.database as database
 import modules.vps as vps
-from mock import patch
+from mock import patch, Mock
 import mock
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -205,6 +205,13 @@ class VPSServerTestCase(unittest.TestCase):
     def test_logging_entry(self):
         v = vps.VMFunctions
         v.log_entry('test')
+
+    def test_logging_entry_with_mock(self):
+        v = vps.VMFunctions
+        mock_file_handle = Mock()
+        with patch('builtins.open') as mock_file_handle:
+            v.log_entry('test')
+
 
 
 
