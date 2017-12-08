@@ -97,13 +97,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
         return output
 
-    def get_command(self):
-        return self.command
-
-    def get_id(self):
-        return self.id
-
-    def logentry(self, data):
+    def log_entry(data):
         try:
             f = open(log_file_path, 'a')
             f.write(data)

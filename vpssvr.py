@@ -18,10 +18,10 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 Config = ConfigParser.ConfigParser()
 Config.read("{}/configuration.cfg".format(dir_path))
 
-PIDFile             = Config.get('Global','PIDFile')
-LogFile             = Config.get('Global','LogFile')
-HOST                = str(Config.get('Global','HOST'))
-PORT                = int(Config.get('Global','PORT'))
+PIDFile = Config.get('Global','PIDFile')
+LogFile = Config.get('Global','LogFile')
+HOST = str(Config.get('Global','HOST'))
+PORT = int(Config.get('Global','PORT'))
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 

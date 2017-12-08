@@ -4,6 +4,7 @@ import unittest
 import tempfile
 import base64
 import modules.database as database
+import modules.vps as vps
 from mock import patch
 import mock
 
@@ -200,6 +201,10 @@ class VPSServerTestCase(unittest.TestCase):
         rv = self.open_with_auth('/vpssvr/api/v1.0/tasks/netStart/878',
                                  'GET', 'miguel', 'python')
         assert b'ifconfig' in rv.data
+
+    def test_logging_entry(self):
+        v = vps.VMFunctions
+        v.log_entry('test')
 
 
 
