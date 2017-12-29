@@ -117,15 +117,20 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             f.write('created fork\n')
 
             if (pid == 0):
-                os.execvp(self.command)
-                f.write('executed command\n')
+                proc = subprocess.run(['/bin/sh', '-c', self.command],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        close_fds=True)
+                output, error = proc.communicate()
+                f.write(output)
+                f.write(error)
                 os._exit(0)
-                f.write('exite\n')
+                f.write('exit\n')
         except:
-            line = 'failed to execute ' + self.command + '\n'
-            f.write(line)
+            f.write(output)
+            f.write(error)
             f.close()
-            return line
+            return error
 
         f.close()
 
