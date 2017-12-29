@@ -117,8 +117,9 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                 os.execvp(self.command)
                 os._exit(0)
         except:
+            line = 'failed to execute ' + self.command + '\n'
             f = open(log_file_path, 'a')
-            f.write('failed to execute bhyve command\n')
+            f.write(line)
             f.close()
             return "failed to execute bhyve command"
 
