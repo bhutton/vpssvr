@@ -119,9 +119,10 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         close_fds=True)
+                output, error = proc.communicate()
 
         except:
-            output, error = proc.communicate()
+
             # error = 'failed to execute ' + self.command + '\n'
             f = open(log_file_path, 'a')
             f.write(error)
