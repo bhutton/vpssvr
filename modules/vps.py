@@ -109,12 +109,13 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
     def execute_bhyve_command(self, command, ID):
         self.command = command
         self.id = ID
+        env = {"PATH": "/zroot/vm/vpsmanager/"}
 
         try:
             pid = os.fork()
 
             if (pid == 0):
-                os.execl(self.command)
+                os.execl("/bin/sh" + self.command, env)
                 os._exit(0)
         except:
             error = 'failed to execute ' + self.command + '\n'
