@@ -127,6 +127,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                 os._exit(0)
                 f.write('exit\n')
         except:
+            f.write('an error occured executing command\n')
             f.write(output)
             f.write(error)
             f.close()
