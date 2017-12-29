@@ -32,6 +32,7 @@ ifconfig_command_path = vps_configuration.get('Global', 'IFConfig')
 touch_command_path = vps_configuration.get('Global', 'Touch')
 copy_command_path = vps_configuration.get('Global', 'CP')
 delete_command_path = vps_configuration.get('Global', 'RM')
+log_file_path = vps_configuration.get('Global', 'LogFile')
 
 database_user = vps_configuration.get('Database', 'database_user')
 database_password = vps_configuration.get('Database', 'database_password')
@@ -116,6 +117,9 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                 os.execvp(self.command)
                 os._exit(0)
         except:
+            f = open(log_file_path, 'a')
+            f.write('failed to execute bhyve command\n')
+            f.close()
             return "failed to execute bhyve command"
 
     def execute_command(self, cmd):
