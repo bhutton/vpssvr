@@ -109,31 +109,25 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
     def execute_bhyve_command(self, command, ID):
         self.command = command
         self.id = ID
-        env = {"PATH": "/zroot/vm/vpsmanager/"}
+
 
         try:
+            f = open(log_file_path, 'a')
             pid = os.fork()
+            f.write('created fork\n')
 
             if (pid == 0):
-                proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT,
-                                        close_fds=True)
-                output, error = proc.communicate()
+                os.execvp(self.command)
+                f.write('executed command\n')
                 os._exit(0)
-                f = open(log_file_path, 'a')
-                f.write(output)
-                f.write(error)
-                f.close()
-
+                f.write('exite\n')
         except:
-            # error = 'failed to execute ' + self.command + '\n'
-            output, error = proc.communicate()
-            f = open(log_file_path, 'a')
-            f.write(output)
-            f.write(error)
+            line = 'failed to execute ' + self.command + '\n'
+            f.write(line)
             f.close()
-            return error
+            return line
+
+        f.close()
 
     def execute_command(self, cmd):
         proc = subprocess.Popen(['/bin/sh', '-c', cmd],
