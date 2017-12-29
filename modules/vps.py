@@ -111,19 +111,19 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         self.id = ID
 
         try:
-            pid = os.fork()
+            # pid = os.fork()
+            #
+            # if (pid == 0):
+            proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
+            output, error = proc.communicate()
 
-            if (pid == 0):
-                proc = subprocess.Popen(['/bin/sh', '-c', self.command],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT,
-                                        close_fds=True)
-                output, error = proc.communicate()
-
-                f = open(log_file_path, 'a')
-                f.write(output)
-                f.write(error)
-                f.close()
+            f = open(log_file_path, 'a')
+            f.write(output)
+            f.write(error)
+            f.close()
 
         except:
 
