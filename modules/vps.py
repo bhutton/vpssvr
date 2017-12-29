@@ -121,6 +121,10 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                                         close_fds=True)
                 output, error = proc.communicate()
 
+                f = open(log_file_path, 'a')
+                f.write(error)
+                f.close()
+
         except:
 
             # error = 'failed to execute ' + self.command + '\n'
