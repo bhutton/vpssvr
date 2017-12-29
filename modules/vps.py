@@ -114,14 +114,14 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             pid = os.fork()
 
             if (pid == 0):
-                os.execvp(self.command)
+                os.execl(self.command)
                 os._exit(0)
         except:
-            line = 'failed to execute ' + self.command + '\n'
+            error = 'failed to execute ' + self.command + '\n'
             f = open(log_file_path, 'a')
-            f.write(line)
+            f.write(error)
             f.close()
-            return "failed to execute bhyve command"
+            return error
 
     def execute_command(self, cmd):
         proc = subprocess.Popen(['/bin/sh', '-c', cmd],
