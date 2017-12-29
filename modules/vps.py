@@ -109,7 +109,6 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
     def execute_bhyve_command(self, command, ID):
         self.command = command
         self.id = ID
-        env = {"PATH": "/zroot/vm/vpsmanager/"}
 
         try:
             pid = os.fork()
@@ -122,6 +121,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                 output, error = proc.communicate()
 
                 f = open(log_file_path, 'a')
+                f.write(output)
                 f.write(error)
                 f.close()
 
