@@ -115,10 +115,14 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             pid = os.fork()
 
             if (pid == 0):
-                os.execl("/bin/sh" + self.command, env)
-                os._exit(0)
+                proc = subprocess.Popen(['/bin/sh', '-c', self.command],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        close_fds=True)
+
         except:
-            error = 'failed to execute ' + self.command + '\n'
+            output, error = proc.communicate()
+            # error = 'failed to execute ' + self.command + '\n'
             f = open(log_file_path, 'a')
             f.write(error)
             f.close()
