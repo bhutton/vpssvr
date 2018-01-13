@@ -109,7 +109,8 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
     def execute_bhyve_command(self, command, ID):
         self.command = command
         self.id = ID
-
+        output = ''
+        error = ''
 
         try:
             f = open(log_file_path, 'a')
@@ -122,20 +123,21 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         close_fds=True)
+
+                os._exit(0)
                 f.write('command executed\n')
                 output, error = proc.communicate()
                 f.write(output)
                 f.write(error)
-                os._exit(0)
-                f.write('exit\n')
         except:
             f.write('an error occured executing command\n')
             f.write(output)
             f.write(error)
             f.close()
-            return error
+            return "error"
 
         f.close()
+        return True
 
     def execute_command(self, cmd):
         proc = subprocess.Popen(['/bin/sh', '-c', cmd],

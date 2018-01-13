@@ -20,11 +20,11 @@ class VPSServerTestCase(unittest.TestCase):
             vpsserver.init_db()
 
     def tearDown(self):
-        os.close(self.db_fd)
         try:
+            os.close(self.db_fd)
             os.unlink(vpsserver.app.config['DATABASE'])
         except:
-            print('cannot remove')
+            print('cannot remove temporary database file')
 
     def open_with_auth(self, url, method, username, password):
         headers = {
@@ -76,6 +76,17 @@ class VPSServerTestCase(unittest.TestCase):
                                  'GET', 'miguel', 'python')
 
         assert b'Started VPS 878' in rv.data
+
+    def test_start_and_stop_vps_without_subprocess_mock(self):
+        v = vps.VMFunctions()
+
+        return_value = v.execute_bhyve_command('/Users/ben/repos/vpssvr/tests/start.sh', 878)
+        self.assertTrue(return_value)
+        self.assertNotEqual('error', return_value)
+        self.assertTrue(v.check_vps_status(878))
+
+        return_value = v.execute_bhyve_command('/Users/ben/repos/vpssvr/tests/stop.sh', 878)
+        self.assertNotEqual('error', return_value)
 
     @patch('os.path.exists')
     @patch('subprocess.Popen')
