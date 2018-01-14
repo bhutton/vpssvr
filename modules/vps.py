@@ -33,6 +33,7 @@ touch_command_path = vps_configuration.get('Global', 'Touch')
 copy_command_path = vps_configuration.get('Global', 'CP')
 delete_command_path = vps_configuration.get('Global', 'RM')
 log_file_path = vps_configuration.get('Global', 'LogFile')
+vm_status_path = vps_configuration.get('Global','VMStatusPath')
 
 database_user = vps_configuration.get('Database', 'database_user')
 database_password = vps_configuration.get('Database', 'database_password')
@@ -107,7 +108,6 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             return "Error with ".format(log_file_path)
 
     def execute_bhyve_command(self, command, ID):
-        self.command = command
         self.id = ID
         output = ''
         error = ''
@@ -119,7 +119,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
             if (pid == 0):
                 f.write('executing command\n')
-                proc = subprocess.run(['/bin/sh', '-c', self.command],
+                proc = subprocess.run(['/bin/sh', '-c', command],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         close_fds=True)
@@ -134,9 +134,10 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             f.write(output)
             f.write(error)
             f.close()
-            return "error"
+            return False
 
         f.close()
+
         return True
 
     def execute_command(self, cmd):
@@ -245,6 +246,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
     def check_vps_status(self, vps_id):
         self.id = vps_id
+        path = vm_status_path + str(vps_id)
 
         VPS = self.vps.get_vps_details(self.id)
 
@@ -252,7 +254,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
         if (vps_startscript == ""): vps_name = str(self.id)
 
-        if (os.path.exists("/dev/vmm/" + str(vps_id))):
+        if (os.path.exists(path)):
             self.status = "Running"
             return "Running"
         else:

@@ -1,4 +1,6 @@
 import os
+from time import sleep
+
 import vpsserver
 import unittest
 import tempfile
@@ -83,10 +85,19 @@ class VPSServerTestCase(unittest.TestCase):
         return_value = v.execute_bhyve_command('/Users/ben/repos/vpssvr/tests/start.sh', 878)
         self.assertTrue(return_value)
         self.assertNotEqual('error', return_value)
-        self.assertTrue(v.check_vps_status(878))
+        sleep(2)
+        return_value = v.check_vps_status(878)
+        self.assertEqual(return_value, "Running")
 
         return_value = v.execute_bhyve_command('/Users/ben/repos/vpssvr/tests/stop.sh', 878)
         self.assertNotEqual('error', return_value)
+
+    def test_execute_command_with_failure(self):
+        v = vps.VMFunctions()
+
+        v.execute_bhyve_command('startme.sh', 878)
+        return_value = v.check_vps_status(878)
+        self.assertEqual(return_value, "Stopped")
 
     @patch('os.path.exists')
     @patch('subprocess.Popen')
