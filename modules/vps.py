@@ -115,7 +115,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         try:
             f = open(log_file_path, 'a')
             pid = os.fork()
-            f.write('created fork\n')
+            f.write('created fork {}\n'.format(pid))
 
             if (pid == 0):
                 f.write('executing command\n')
