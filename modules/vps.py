@@ -112,7 +112,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         self.id = ID
         output = ''
         error = ''
-        args = shlex.split(command)
+        args = shlex.split('/bin/sh ' + command)
 
         try:
             f = open(log_file_path, 'a')
