@@ -117,18 +117,18 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             pid = os.fork()
             f.write('created fork {}\n'.format(pid))
 
-            # if (pid == 0):
-            f.write('executing command\n')
-            proc = subprocess.run(['/bin/sh', '-c', command],
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT,
-                                    close_fds=True)
+            if (pid == 0):
+                f.write('executing command\n')
+                proc = subprocess.run(['/bin/sh', '-c', command],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        close_fds=True)
 
-            os._exit(0)
-            f.write('command executed\n')
-            output, error = proc.communicate()
-            f.write(output)
-            f.write(error)
+                os._exit(0)
+                f.write('command executed\n')
+                output, error = proc.communicate()
+                f.write(output)
+                f.write(error)
         except:
             f.write('an error occured executing command\n')
             f.write(output)
