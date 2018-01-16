@@ -1,6 +1,7 @@
 import os
 import configparser
 import subprocess
+import shlex
 import modules.database as database
 import time
 
@@ -111,6 +112,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         self.id = ID
         output = ''
         error = ''
+        args = shlex.split(command)
 
         try:
             f = open(log_file_path, 'a')
@@ -119,10 +121,12 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
             if (pid == 0):
                 f.write('executing command\n')
-                proc = subprocess.run(['/bin/sh', '-c', command],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT,
-                                        close_fds=True)
+                # proc = subprocess.run(['/bin/sh', '-c', command],
+                #                         stdout=subprocess.PIPE,
+                #                         stderr=subprocess.STDOUT,
+                #                         close_fds=True)
+
+                proc = subprocess.Popen(args)
 
                 os._exit(0)
                 f.write('command executed\n')
