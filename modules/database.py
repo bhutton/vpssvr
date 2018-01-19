@@ -262,7 +262,7 @@ class DatabaseVPS(DatabaseConnectivity):
         if (vps_startscript == ""): vps_stopscript = "stop.sh"
         if (vps_path == ""): vps_path = RootPath + "/" + vps_id
 
-        return ("/bin/sh " + vps_path + "/" + vps_stopscript)
+        return (vps_path + "/" + vps_stopscript)
 
     def stop_console(self, root_path):
         vps_id = str(self.vps[0])
