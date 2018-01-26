@@ -20,7 +20,10 @@ centos_image_path = vps_configuration.get('Global', 'SrcImgCentos')
 debian_image_path = vps_configuration.get('Global', 'SrcImgDebian')
 ubuntu_image_path = vps_configuration.get('Global', 'SrcImgUbuntu')
 windows10_image_path = vps_configuration.get('Global', 'SrcImgWin10')
-bhyvectl_path = vps_configuration.get('Global', 'Bhyvectl')
+bhyve_cmd = vps_configuration.get('Global', 'Bhyvecmd')
+bhyveload_cmd = vps_configuration.get('Global', 'Bhyveload')
+bhyvectl_cmd = vps_configuration.get('Global', 'Bhyvectl')
+grub_cmd = vps_configuration.get('Global', 'Grubcmd')
 pid_file_path = vps_configuration.get('Global', 'PIDFile')
 log_file_path = vps_configuration.get('Global', 'LogFile')
 host_address = str(vps_configuration.get('Global', 'HOST'))
@@ -308,11 +311,11 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
     def generate_bhyve_commands(self):
 
-        self.bhyve_load_command = "/usr/sbin/bhyveload -m {} " \
+        self.bhyve_load_command = bhyveload_cmd + " -m {} " \
                                   "-d {} {}\n".format(self.vps_memory,
                                                       self.boot_drive,
                                                       self.vps_id)
-        self.bhyve_command = "/usr/sbin/bhyve -A -H -P " \
+        self.bhyve_command = bhyve_cmd + " -A -H -P " \
                              "-s 0:0,hostbridge " \
                              "-s 1:0,lpc {} {} " \
                              "-l com1,/dev/nmdm{}A " \
@@ -320,7 +323,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             format(self.network_interface, self.attached_drives,
                    self.vps_console_number, self.vps_memory,
                    self.vps_id)
-        self.shell_in_a_box = "/usr/local/bin/shellinaboxd " \
+        self.shell_in_a_box = shell_in_a_box_command + " " \
                               "-t --service='/shell':'root':'wheel'" \
                               ":'/root':'/usr/bin/cu " \
                               "-l /dev/nmdm{}B' " \
@@ -332,7 +335,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                                   "-r hd0,msdos1 " \
                                   "-M {} {}".format(self.vps_path, self.vps_memory,
                                                     self.vps_id)
-        self.grub_bhyve2_command = "/usr/local/sbin/grub-bhyve " \
+        self.grub_bhyve2_command = grub_cmd + \
                                    "-d /grub2 " \
                                    "-m {}/device.map " \
                                    "-r hd0,msdos1 -M {} {}". \
@@ -451,7 +454,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
                                                                   self.bhyve_command, network_bridge_devices,
                                                                   self.shell_in_a_box)
 
-            stop_script_data = "{} --destroy --vm={}\n".format(bhyvectl_path, vps_id)
+            stop_script_data = "{} --destroy --vm={}\n".format(bhyvectl_cmd, vps_id)
             start_console_script = self.shell_in_a_box
             stop_console_script = stop_shell_in_a_box_command
 
@@ -516,7 +519,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         start_console_path = "{}/startconsole.sh".format(self.vps_path)
         stop_console_script_path = "{}/stopconsole.sh".format(self.vps_path)
 
-        stop_script_data = "{} --destroy --vm={}\n".format(bhyvectl_path, vps_id)
+        stop_script_data = "{} --destroy --vm={}\n".format(bhyvectl_cmd, vps_id)
 
         start_script_data = self.generate_script_data(self.add_bridge_interfaces, self.add_tap_device,
                                                       self.bhyve_command,
