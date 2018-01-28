@@ -38,6 +38,7 @@ copy_command_path = vps_configuration.get('Global', 'CP')
 delete_command_path = vps_configuration.get('Global', 'RM')
 log_file_path = vps_configuration.get('Global', 'LogFile')
 vm_status_path = vps_configuration.get('Global','VMStatusPath')
+start_interface = int(vps_configuration.get('Global','InterfaceStartNumber'))
 
 database_user = vps_configuration.get('Database', 'database_user')
 database_password = vps_configuration.get('Database', 'database_password')
@@ -309,6 +310,9 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         except:
             return "Error occurred generating script".format(self.file)
 
+    def get_network_interface(self):
+        return self.network_interface
+
     def generate_bhyve_commands(self):
 
         self.bhyve_load_command = bhyveload_cmd + " -m {} " \
@@ -344,7 +348,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
     def generate_devices(self, Devices, Interface):
         Count = 0
         NetInt = ''
-        Interface = 2
+        # Interface = start_interface
         AddTaps = ''
         DelTaps = ''
         AddBridges = ''
@@ -397,7 +401,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
         self.get_vps_path(vps_id)
 
-        interface = 2
+        interface = start_interface
 
         network_interfaces, network_tap_devices, del_taps, network_bridge_devices, interface = self.generate_devices(
             self.vps_attached_network_devices, interface)
@@ -504,7 +508,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         stop_shell_in_a_box = "/usr/bin/sockstat -4 -l | grep :{}{}". \
             format(shell_in_a_box_prefix, vps_id)
 
-        interface = 2
+        interface = start_interface
 
         self.network_interface, self.add_tap_device, self.delete_tap_device, self.add_bridge_interfaces, \
         self.interface = self.generate_devices(vps_network_devices, interface)
@@ -565,7 +569,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
 
         vps_network_devices = self.vps.get_devices(vps_id)
 
-        interface = 2
+        interface = start_interface
 
         self.vps.get_vps_details(vps_id)
         self.get_vps_details(vps_id)
@@ -638,7 +642,7 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         Disks = self.vps.get_disks_details_from_database(vps_id)
         Devices = self.vps.get_devices(vps_id)
 
-        Interface = 2
+        Interface = start_interface
 
         NetInt, AddTaps, DelTaps, AddBridges, Interface = self.generate_devices(Devices, Interface)
         self.generate_disks(Disks, Interface, self.vps_id, self.vps_path)
