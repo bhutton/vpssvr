@@ -39,6 +39,7 @@ delete_command_path = vps_configuration.get('Global', 'RM')
 log_file_path = vps_configuration.get('Global', 'LogFile')
 vm_status_path = vps_configuration.get('Global','VMStatusPath')
 start_interface = int(vps_configuration.get('Global','InterfaceStartNumber'))
+start_disk = int(vps_configuration.get('Global','DiskStartNumber'))
 
 database_user = vps_configuration.get('Database', 'database_user')
 database_password = vps_configuration.get('Database', 'database_password')
@@ -402,10 +403,11 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         self.get_vps_path(vps_id)
 
         interface = start_interface
+        self.disk_number = start_disk
 
         network_interfaces, network_tap_devices, del_taps, network_bridge_devices, interface = self.generate_devices(
             self.vps_attached_network_devices, interface)
-        boot_drive, drives, interface, linux_boot_device = self.generate_disks(self.vps_attached_disks, interface,
+        boot_drive, drives, interface, linux_boot_device = self.generate_disks(self.vps_attached_disks, self.disk_number,
                                                                                vps_id, self.vps_path)
         self.generate_bhyve_commands()
 
@@ -509,11 +511,12 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
             format(shell_in_a_box_prefix, vps_id)
 
         interface = start_interface
+        self.disk_number = start_disk
 
         self.network_interface, self.add_tap_device, self.delete_tap_device, self.add_bridge_interfaces, \
         self.interface = self.generate_devices(vps_network_devices, interface)
         self.boot_drive, self.attached_drives, self.interface, self.linux_boot_drive = \
-            self.generate_disks(self.vps_attached_disks, interface, vps_id, self.vps_path)
+            self.generate_disks(self.vps_attached_disks, self.disk_number, vps_id, self.vps_path)
 
         self.generate_bhyve_commands()
 
