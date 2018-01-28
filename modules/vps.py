@@ -510,11 +510,11 @@ class VMFunctions(database.DatabaseVPS, database.DatabaseNetwork):
         stop_shell_in_a_box = "/usr/bin/sockstat -4 -l | grep :{}{}". \
             format(shell_in_a_box_prefix, vps_id)
 
-        interface = start_interface
+        self.interface_number = start_interface
         self.disk_number = start_disk
 
         self.network_interface, self.add_tap_device, self.delete_tap_device, self.add_bridge_interfaces, \
-        self.interface = self.generate_devices(vps_network_devices, interface)
+        self.interface = self.generate_devices(vps_network_devices, self.interface_number)
         self.boot_drive, self.attached_drives, self.interface, self.linux_boot_drive = \
             self.generate_disks(self.vps_attached_disks, self.disk_number, vps_id, self.vps_path)
 
